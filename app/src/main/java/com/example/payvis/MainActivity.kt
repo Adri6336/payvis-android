@@ -38,6 +38,8 @@ data class Time(val initialTime: LocalDateTime){
     val minute = startTime.slice(14..15).toInt()
     val second = startTime.slice(17..18).toInt()
 
+    val dbEntryTag = startTime.split(" ")[0]  // Grabs the year, month, and day
+
     init {
         // To get the time as seconds, total up the num sec in month, day, ... sec
         val monthSec = this.month.toDouble() * 2628002.88
@@ -100,6 +102,7 @@ data class Time(val initialTime: LocalDateTime){
 data class Clock(val startTime: Time){
     var totalSeconds: Double = 0.0
     var active = true
+    var dataBase: MutableMap<String, Map<String, Double>> = mutableMapOf()
 
     fun update(){
         this.totalSeconds = startTime.getElapsedTimeSec(LocalDateTime.now())
@@ -108,6 +111,28 @@ data class Clock(val startTime: Time){
     fun stop(){
         this.active = false
     }
+
+    fun calculatePay(payRate: Double, secondsWorked: Double): Double{
+        val payPerSec = ((payRate / 60.0) / 60.0)
+        return (payPerSec * secondsWorked)
+    }
+
+    fun createDBEntry(payRate: Double){
+        // This will create a map entry containing time worked and pay earned
+
+        // 1. Get entry key
+        val day = startTime.dbEntryTag
+
+        // 2. Get seconds and pay, then create map
+        this.update()
+        val pay = this.calculatePay(payRate, this.totalSeconds)
+        val data: Map<String, Double> = mapOf("seconds" to this.totalSeconds, "pay" to pay)
+
+        // 3. Create entry in db
+        dataBase.put(day, data)
+
+    }
+
 }
 
 
