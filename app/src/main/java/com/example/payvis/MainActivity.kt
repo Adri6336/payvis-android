@@ -169,9 +169,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun createClockFile(clock: Clock, active: Boolean = true){
+    fun createClockFile(clock: Clock){
         val timeStamp = clock.startTime.initialTime.toString()
         val totalSeconds = clock.update()
+        val active = clock.active
         val dataStr: String = "$timeStamp\n$totalSeconds\n$active"
         this.saveFile(dataStr, "clock.pvcf")
     }
