@@ -130,7 +130,17 @@ data class Clock(val startTime: Time){
 
         // 3. Create entry in db
         dataBase.put(day, data)
+    }
 
+    fun makeJsonString(): String{
+        val gson = Gson()
+        val dbString: String = gson.toJson(this.dataBase, MutableMap::class.java)
+        return dbString
+    }
+
+    fun loadJsonString(data: String){
+        val gson = Gson()
+        val db = gson.fromJson(data, MutableMap::class.java)
     }
 
 }
