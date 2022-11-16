@@ -102,10 +102,11 @@ data class Time(val initialTime: LocalDateTime){
 data class Clock(val startTime: Time){
     var totalSeconds: Double = 0.0
     var active = true
-    var dataBase: MutableMap<String, Map<String, Double>> = mutableMapOf()
+    var dataBase: MutableMap<String, Map<String, String>> = mutableMapOf()  // day : total sec, pay, start, and end times
 
     fun update(){
-        this.totalSeconds = startTime.getElapsedTimeSec(LocalDateTime.now())
+        val now = LocalDateTime.now()
+        this.totalSeconds = startTime.getElapsedTimeSec(now)
     }
 
     fun stop(){
@@ -124,9 +125,14 @@ data class Clock(val startTime: Time){
         val day = startTime.dbEntryTag
 
         // 2. Get seconds and pay, then create map
-        this.update()
+        val end = this.update()  // Grabs the finishing time
         val pay = this.calculatePay(payRate, this.totalSeconds)
-        val data: Map<String, Double> = mapOf("seconds" to this.totalSeconds, "pay" to pay)
+        val data: Map<String, String> = mapOf(
+            "seconds" to this.totalSeconds.toString(),
+            "pay" to pay.toString(),
+            "start" to this.startTime.toString(),
+            "finish" to end.toString()
+        )
 
         // 3. Create entry in db
         dataBase.put(day, data)
