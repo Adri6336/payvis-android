@@ -31,6 +31,8 @@ data class Time(val initialTime: LocalDateTime){
     val startTime = initialTime.format(formatter)
     var timeAsSeconds: Double = 0.0  // This will be replaced by a value after init
 
+    // The following values are slices from startTime string. I can think of a better way
+    // to do it, but this is already here and it works so it'll stay
     val year = startTime.slice(0..3).toInt()  // here just in case I need it
     val month = startTime.slice(5..6).toInt()
     val day = startTime.slice(8..9).toInt()
@@ -83,7 +85,7 @@ data class Time(val initialTime: LocalDateTime){
         var hourText: String
         var minText: String
 
-        if (hours > 1){hourText = "$hours hours"}
+        if (hours > 1){hourText = "$hours hours"}  // If there's more than one, it should be plural
         else if (hours == 1) {hourText = "$hours hour"}
         else {hourText = ""}
 
@@ -124,7 +126,7 @@ data class Clock(val startTime: Time){
         // 1. Get entry key
         val day = startTime.dbEntryTag
 
-        // 2. Get seconds and pay, then create map
+        // 2. Create entry value
         val end = this.update()  // Grabs the finishing time
         val pay = this.calculatePay(payRate, this.totalSeconds)
         val data: Map<String, String> = mapOf(
@@ -139,6 +141,7 @@ data class Clock(val startTime: Time){
     }
 
     fun makeJsonString(): String{
+        // Creates a json string of the database mutable map
         val gson = Gson()
         val dbString: String = gson.toJson(this.dataBase, MutableMap::class.java)
         return dbString
@@ -152,29 +155,12 @@ data class Clock(val startTime: Time){
 }
 
 
-/*
-abandoned json code: may be useful for db
-fun getJSONTime(data: String): Time{
-    // In comes json string of time class, out comes time (hopefully)
-    val gson = Gson()
-    val timeStamp: LocalDateTime = gson.fromJson(data, LocalDateTime::class.java)
-    return Time()
-}
-
-fun makeJSONTime(data: LocalDateTime): String{
-    // In comes time class, out comes json string (hopefully)
-    val gson = Gson()
-    val jsonTime: String = gson.toJson(data, LocalDateTime::class.java)
-    return jsonTime
-}
-*/
-
-
 class MainActivity : AppCompatActivity() {
 
     // ============ FUNCTIONS ============
 
     fun goTo(url: String){
+        // Opens browser pointing to url passed
         // https://stackoverflow.com/questions/5026349/how-to-open-a-website-when-a-button-is-clicked-in-android-application
         val uriUrl = Uri.parse(url)
         ContextCompat.startActivity(this, Intent(Intent.ACTION_VIEW, uriUrl), null)
@@ -193,10 +179,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun clockFileExists(): Boolean{
+        // Determines if the clock file has been created
         return File("clock.pvcf").exists()
     }
 
     fun clockFileFormattedCorrect(): Boolean{
+        // Determines if the clock file was correctly formatted
         // If the data can be safely extracted, it should be formatted correctly
         try{
             val clockData = readFile("clock.pvcf").split("\n")
@@ -219,6 +207,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun loadClockFile(): Clock{
+        /*
+        Opens the clock file, grabs the data within, and creates a new
+        Clock object with it. Returns this new object
+         */
 
         // 1. Get data from file
         val clockData = readFile("clock.pvcf").split("\n")
@@ -236,6 +228,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun saveDBFile(clock: Clock){
+        // Grabs the mutable map json string from Clock object and saves it to a file
         val dbJson = clock.makeJsonString()
         saveFile(dbJson, "workDB.json")
     }
