@@ -2,29 +2,18 @@
 // Icon made with money image found here: https://www.pngarts.com/files/3/Falling-Cash-Money-PNG-Photo.png
 package com.example.payvis
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.JsonWriter
-import android.util.Log
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.Writer
-import java.math.RoundingMode
-import java.nio.file.Files.walk
-import java.security.AccessController.getContext
-import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.google.gson.Gson
-import kotlin.reflect.typeOf
 
 data class Time(val initialTime: LocalDateTime){
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -200,7 +189,7 @@ class MainActivity : AppCompatActivity() {
 
     fun createClockFile(clock: Clock){
         val timeStamp = clock.startTime.initialTime.toString()
-        val totalSeconds = clock.update()
+        val totalSeconds = clock.totalSeconds
         val active = clock.active
         val dataStr: String = "$timeStamp\n$totalSeconds\n$active"
         this.saveFile(dataStr, "clock.pvcf")
@@ -245,12 +234,43 @@ class MainActivity : AppCompatActivity() {
 
         // Connect elements from app
         val startButton = findViewById<Button>(R.id.start_button)
-        val livwageView = findViewById<TextView>(R.id.livwage_view2)
+        val resetButton = findViewById<Button>(R.id.reset_time_button)
+        val displayPayButton = findViewById<Button>(R.id.display_pay_button)
+
+        val notifyView = findViewById<TextView>(R.id.notify_view)
         val timeWorked = findViewById<TextView>(R.id.time_worked_view)
+        val payView = findViewById<TextView>(R.id.pay_view)
+
+        val rateEntry = findViewById<EditText>(R.id.current_wage_entry)
+
+        // Determine if clock file exists
+        var clockStarted = false  // If this remains false, app will make a new clock file at start
+        var clock: Clock
+
+        if (clockFileExists() && clockFileFormattedCorrect()) {
+            // Mark clock started and import settings
+            clockStarted = true
+
+            clock = loadClockFile()
+        }
 
 
         // Create Listeners
-        startButton.setOnClickListener{
+        startButton.setOnClickListener{  // start or stop clock
+
+            // 1. Set up clock file if needed
+            if (!clockStarted){
+                clock = Clock(Time(LocalDateTime.now()))
+                createClockFile(clock)
+            }
+
+        }
+
+        resetButton.setOnClickListener {
+
+        }
+
+        displayPayButton.setOnClickListener {
 
         }
 
