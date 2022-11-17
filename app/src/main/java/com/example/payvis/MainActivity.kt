@@ -2,7 +2,6 @@
 // Icon made with money image found here: https://www.pngarts.com/files/3/Falling-Cash-Money-PNG-Photo.png
 package com.example.payvis
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -190,7 +189,7 @@ class MainActivity : AppCompatActivity() {
 
     fun createClockFile(clock: Clock){
         val timeStamp = clock.startTime.initialTime.toString()
-        val totalSeconds = clock.update()
+        val totalSeconds = clock.totalSeconds
         val active = clock.active
         val dataStr: String = "$timeStamp\n$totalSeconds\n$active"
         this.saveFile(dataStr, "clock.pvcf")
@@ -244,9 +243,34 @@ class MainActivity : AppCompatActivity() {
 
         val rateEntry = findViewById<EditText>(R.id.current_wage_entry)
 
+        // Determine if clock file exists
+        var clockStarted = false  // If this remains false, app will make a new clock file at start
+        var clock: Clock
+
+        if (clockFileExists() && clockFileFormattedCorrect()) {
+            // Mark clock started and import settings
+            clockStarted = true
+
+            clock = loadClockFile()
+        }
+
 
         // Create Listeners
-        startButton.setOnClickListener{
+        startButton.setOnClickListener{  // start or stop clock
+
+            // 1. Set up clock file if needed
+            if (!clockStarted){
+                clock = Clock(Time(LocalDateTime.now()))
+                createClockFile(clock)
+            }
+
+        }
+
+        resetButton.setOnClickListener {
+
+        }
+
+        displayPayButton.setOnClickListener {
 
         }
 
