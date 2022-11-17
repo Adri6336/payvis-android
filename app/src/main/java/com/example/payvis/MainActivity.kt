@@ -197,7 +197,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun clockFileFormattedCorrect(): Boolean{
-        // If the data can be safely extracted, it should be formmated correctly
+        // If the data can be safely extracted, it should be formatted correctly
         try{
             val clockData = readFile("clock.pvcf").split("\n")
             val timeStamp = LocalDateTime.parse(clockData[0])
@@ -233,6 +233,16 @@ class MainActivity : AppCompatActivity() {
         newClock.active = active
 
         return newClock
+    }
+
+    fun saveDBFile(clock: Clock){
+        val dbJson = clock.makeJsonString()
+        saveFile(dbJson, "workDB.json")
+    }
+
+    fun loadDBFile(clock: Clock){
+        val dbJson = readFile("workDB.json")
+        clock.loadJsonString(dbJson)
     }
 
     // ============ APP ============
