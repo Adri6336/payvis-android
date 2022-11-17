@@ -217,7 +217,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun saveDBFile(clock: Clock){
-        // Grabs the mutable map json string from Clock object and saves it to a file
+        // Grabs the mutable map json string from Clock object and saves it to a file 
         val dbJson = clock.makeJsonString()
         saveFile(dbJson, "workDB.json")
     }
