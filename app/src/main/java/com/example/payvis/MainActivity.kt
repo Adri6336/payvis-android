@@ -92,8 +92,9 @@ data class Time(val initialTime: LocalDateTime){
 
 data class Clock(val startTime: Time){
     var totalSeconds: Double = 0.0
-    var active = true
+    var active = false
     var dataBase: MutableMap<String, Map<String, String>> = mutableMapOf()  // day : total sec, pay, start, and end times
+    var rate: Double = 0.0
 
     fun update(){
         val now = LocalDateTime.now()
@@ -180,6 +181,7 @@ class MainActivity : AppCompatActivity() {
             val timeStamp = LocalDateTime.parse(clockData[0])
             val totalSec = clockData[1].toDouble()
             val active = clockData[2].toBoolean()
+            val rate = clockData[3].toDouble()
             return true
 
         } catch (t: Throwable){
@@ -191,7 +193,8 @@ class MainActivity : AppCompatActivity() {
         val timeStamp = clock.startTime.initialTime.toString()
         val totalSeconds = clock.totalSeconds
         val active = clock.active
-        val dataStr: String = "$timeStamp\n$totalSeconds\n$active"
+        val rate = clock.rate
+        val dataStr: String = "$timeStamp\n$totalSeconds\n$active\n$rate"
         this.saveFile(dataStr, "clock.pvcf")
     }
 
@@ -206,6 +209,7 @@ class MainActivity : AppCompatActivity() {
         val timeStamp = LocalDateTime.parse(clockData[0])
         val totalSec = clockData[1].toDouble()
         val active = clockData[2].toBoolean()
+        val rate = clockData[3].toDouble()
 
         // 2. Create objects
         val startTime: Time = Time(timeStamp)
@@ -225,15 +229,6 @@ class MainActivity : AppCompatActivity() {
     fun loadDBFile(clock: Clock){
         val dbJson = readFile("workDB.json")
         clock.loadJsonString(dbJson)
-    }
-
-    fun startClock(clock: Clock){
-        // Start the clock code goes here
-    }
-
-    fun stopClock(clock: Clock){
-        // Stop clock code goes here
-        // Should stop clock and save clock file and db
     }
 
     fun clockActive(): Boolean{
@@ -263,6 +258,11 @@ class MainActivity : AppCompatActivity() {
 
         val rateEntry = findViewById<EditText>(R.id.current_wage_entry)
 
+        // Clear default text
+        notifyView.text = ""
+        timeWorked.text = ""
+        payView.text = ""
+
         // Determine if clock file exists
         var clockStarted = false  // If this remains false, app will make a new clock file at start
         var clock: Clock = Clock(Time(LocalDateTime.now()))  // Set equal to a place holder
@@ -270,21 +270,55 @@ class MainActivity : AppCompatActivity() {
         if (clockFileExists() && clockFileFormattedCorrect() && clockActive()) {
             // Mark clock started and import settings
             clock = loadClockFile()
+            rateEntry.setText("${String.format("%.02f", clock.rate)}")  // Loads saved rate to entry
             clockStarted = true
         }
 
-
         // Create Listeners
         startButton.setOnClickListener{  // start or stop clock
+            // 0. Ensure that necessary info exists
+            var rate: Double
+
+            try{
+                rate = rateEntry.text.toString().toDouble()
+            } catch (t: Throwable){
+                notifyView.text = "ERROR: ${t.message}"
+                return@setOnClickListener
+            }
 
             // 1. Set up clock file if needed
-            if (!clockStarted){  // If clock hasn't been started today,
-                clock = Clock(Time(LocalDateTime.now()))
-                createClockFile(clock)
-                startClock(clock)
+            var startClock = false  // This determines how button will act (to start or stop)
 
-            } else{  // If clock has been started today
-                stopClock(clock)
+            if (!clockStarted){  // If clock hasn't been started
+                clock = Clock(Time(LocalDateTime.now()))  // Make a new one with current time
+                createClockFile(clock)  // Save this clock to device
+                startClock = true  // We will need to start the clock
+
+            } else{
+                startClock = false  // We will need to stop the clock
+            }
+
+            // 2. Start clock or stop clock
+            val endNote: String
+            val dbJson: String
+            var now: LocalDateTime
+
+            if (startClock){  // If we need to start the clock
+                clock.active = true  // this needs to be saved to file
+                createClockFile(clock)  // Save the newly created clock object
+                notifyView.text = "Clock Started!"
+
+            } else{  // Otherwise if we need to stop the clock
+                now = LocalDateTime.now()  // Get current time
+                endNote = clock.startTime.getElapsedTimeAsString(now)  // Get elapsed time str
+                clock.createDBEntry(rate)  // This calculates pay and enters it into db
+                dbJson = clock.makeJsonString()  // This converts db into json format
+                saveFile(dbJson, "payData.json")  // Save json to a file
+                clock.active = false
+                timeWorked.text = endNote
+                payView.text = clock.calculatePay(rate, clock.startTime.
+                    getElapsedTimeSec(now)).toString()
+
             }
 
 
