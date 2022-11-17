@@ -217,7 +217,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun saveDBFile(clock: Clock){
-        // Grabs the mutable map json string from Clock object and saves it to a file 
+        // Grabs the mutable map json string from Clock object and saves it to a file
         val dbJson = clock.makeJsonString()
         saveFile(dbJson, "workDB.json")
     }
@@ -226,6 +226,26 @@ class MainActivity : AppCompatActivity() {
         val dbJson = readFile("workDB.json")
         clock.loadJsonString(dbJson)
     }
+
+    fun startClock(clock: Clock){
+        // Start the clock code goes here
+    }
+
+    fun stopClock(clock: Clock){
+        // Stop clock code goes here
+        // Should stop clock and save clock file and db
+    }
+
+    fun clockActive(): Boolean{
+        // Determines if clock active
+        val clockData = readFile("clock.pvcf").split("\n")
+        try{
+            return clockData[2].toBoolean()
+        } catch (t: Throwable){
+            return false
+        }
+    }
+
 
     // ============ APP ============
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -245,13 +265,12 @@ class MainActivity : AppCompatActivity() {
 
         // Determine if clock file exists
         var clockStarted = false  // If this remains false, app will make a new clock file at start
-        var clock: Clock
+        var clock: Clock = Clock(Time(LocalDateTime.now()))  // Set equal to a place holder
 
-        if (clockFileExists() && clockFileFormattedCorrect()) {
+        if (clockFileExists() && clockFileFormattedCorrect() && clockActive()) {
             // Mark clock started and import settings
-            clockStarted = true
-
             clock = loadClockFile()
+            clockStarted = true
         }
 
 
@@ -259,10 +278,15 @@ class MainActivity : AppCompatActivity() {
         startButton.setOnClickListener{  // start or stop clock
 
             // 1. Set up clock file if needed
-            if (!clockStarted){
+            if (!clockStarted){  // If clock hasn't been started today,
                 clock = Clock(Time(LocalDateTime.now()))
                 createClockFile(clock)
+                startClock(clock)
+
+            } else{  // If clock has been started today
+                stopClock(clock)
             }
+
 
         }
 
