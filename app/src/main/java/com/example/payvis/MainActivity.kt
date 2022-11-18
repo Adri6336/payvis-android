@@ -281,6 +281,10 @@ class MainActivity : AppCompatActivity() {
 
             try{
                 rate = rateEntry.text.toString().toDouble()
+                notifyView.text = ""  // If there was previously an error, this wipes it
+            } catch(e: java.lang.NumberFormatException){
+                notifyView.text = "Please enter a number into \"Your Wage\""
+                return@setOnClickListener
             } catch (t: Throwable){
                 notifyView.text = "ERROR: ${t.message}"
                 return@setOnClickListener
