@@ -257,6 +257,7 @@ class MainActivity : AppCompatActivity() {
         val startButton = findViewById<Button>(R.id.start_button)
         val resetButton = findViewById<Button>(R.id.reset_time_button)
         val displayPayButton = findViewById<Button>(R.id.display_pay_button)
+        val exportDataButton = findViewById<Button>(R.id.export_button)
 
         val notifyView = findViewById<TextView>(R.id.notify_view)
         val timeWorked = findViewById<TextView>(R.id.time_worked_view)
