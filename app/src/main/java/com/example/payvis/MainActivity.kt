@@ -291,7 +291,7 @@ class MainActivity : AppCompatActivity() {
             fileDate = clock.startTime.startTime.split(" ")[1]
 
             // 2. If last active was today, keep total seconds
-            if (!(fileDate == date)){
+            if (fileDate != date){
                 clock.totalSeconds = 0.0
             }
 
