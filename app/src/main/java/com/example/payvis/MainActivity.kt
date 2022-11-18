@@ -92,13 +92,15 @@ data class Time(val initialTime: LocalDateTime){
 
 data class Clock(val startTime: Time){
     var totalSeconds: Double = 0.0
+    var sessionSeconds: Double = 0.0
     var active = false
     var dataBase: MutableMap<String, Map<String, String>> = mutableMapOf()  // day : total sec, pay, start, and end times
     var rate: Double = 0.0
+    var pay: Double = 0.0
 
     fun update(){
         val now = LocalDateTime.now()
-        this.totalSeconds = startTime.getElapsedTimeSec(now)
+        this.sessionSeconds = startTime.getElapsedTimeSec(now)
     }
 
     fun stop(){
@@ -118,10 +120,10 @@ data class Clock(val startTime: Time){
 
         // 2. Create entry value
         val end = this.update()  // Grabs the finishing time
-        val pay = this.calculatePay(payRate, this.totalSeconds)
+        val pay = this.calculatePay(payRate, this.totalSeconds + this.sessionSeconds)
         val data: Map<String, String> = mapOf(
             "seconds" to this.totalSeconds.toString(),
-            "pay" to pay.toString(),
+            "pay" to pay.toString(),  // This allows pay to accumulate over sessions
             "start" to this.startTime.toString(),
             "finish" to end.toString()
         )
@@ -141,7 +143,6 @@ data class Clock(val startTime: Time){
         val gson = Gson()
         val db = gson.fromJson(data, MutableMap::class.java)
     }
-
 }
 
 
@@ -182,6 +183,7 @@ class MainActivity : AppCompatActivity() {
             val totalSec = clockData[1].toDouble()
             val active = clockData[2].toBoolean()
             val rate = clockData[3].toDouble()
+            val sessionSeconds = clockData[4].toDouble()
             return true
 
         } catch (t: Throwable){
@@ -194,7 +196,8 @@ class MainActivity : AppCompatActivity() {
         val totalSeconds = clock.totalSeconds
         val active = clock.active
         val rate = clock.rate
-        val dataStr: String = "$timeStamp\n$totalSeconds\n$active\n$rate"
+        val sessionSeconds = clock.sessionSeconds
+        val dataStr: String = "$timeStamp\n$totalSeconds\n$active\n$rate\n$sessionSeconds"
         this.saveFile(dataStr, "clock.pvcf")
     }
 
@@ -210,12 +213,15 @@ class MainActivity : AppCompatActivity() {
         val totalSec = clockData[1].toDouble()
         val active = clockData[2].toBoolean()
         val rate = clockData[3].toDouble()
+        val sessionSeconds = clockData[4].toDouble()
 
         // 2. Create objects
         val startTime: Time = Time(timeStamp)
         val newClock: Clock = Clock(startTime)
         newClock.totalSeconds = totalSec
         newClock.active = active
+        newClock.rate = rate
+        newClock.sessionSeconds = sessionSeconds
 
         return newClock
     }
@@ -266,12 +272,32 @@ class MainActivity : AppCompatActivity() {
         // Determine if clock file exists
         var clockStarted = false  // If this remains false, app will make a new clock file at start
         var clock: Clock = Clock(Time(LocalDateTime.now()))  // Set equal to a place holder
+        var date = Time(LocalDateTime.now()).startTime.split(" ")[0]
+        // The above gets the current time and grabs the date section (time and date separated by space)
+        var fileDate: String  // This is the date found in the file
 
-        if (clockFileExists() && clockFileFormattedCorrect() && clockActive()) {
+        if (clockFileExists() && clockFileFormattedCorrect() && clockActive()) {  // Active clock
             // Mark clock started and import settings
             clock = loadClockFile()
             rateEntry.setText("${String.format("%.02f", clock.rate)}")  // Loads saved rate to entry
             clockStarted = true
+
+        } else if (clockFileExists() && clockFileFormattedCorrect() && !clockActive()){
+            // If the file is good and ready, but the clock was stopped
+
+            // 1. Load permanent data
+            clock = loadClockFile()
+            rateEntry.setText(String.format("%.02f", clock.rate))
+            fileDate = clock.startTime.startTime.split(" ")[1]
+
+            // 2. If last active was today, keep total seconds
+            if (!(fileDate == date)){
+                clock.totalSeconds = 0.0
+            }
+
+            // 3. Wipe session seconds regardless
+            clock.sessionSeconds = 0.0
+
         }
 
         // Create Listeners
@@ -306,6 +332,7 @@ class MainActivity : AppCompatActivity() {
             val endNote: String
             val dbJson: String
             var now: LocalDateTime
+            var pay: Double
 
             if (startClock){  // If we need to start the clock
                 clock.active = true  // this needs to be saved to file
@@ -313,15 +340,23 @@ class MainActivity : AppCompatActivity() {
                 notifyView.text = "Clock Started!"
 
             } else{  // Otherwise if we need to stop the clock
+
+                // 1. Prep clock for db store
                 now = LocalDateTime.now()  // Get current time
                 endNote = clock.startTime.getElapsedTimeAsString(now)  // Get elapsed time str
                 clock.createDBEntry(rate)  // This calculates pay and enters it into db
                 dbJson = clock.makeJsonString()  // This converts db into json format
                 saveFile(dbJson, "payData.json")  // Save json to a file
+
+                // 2. Save clock data
+                pay = clock.calculatePay(rate, clock.startTime.getElapsedTimeSec(now))
+                clock.totalSeconds += clock.sessionSeconds  // Do this because session has ended
                 clock.active = false
+                createClockFile(clock)
+
+                // 3. Output final data
                 timeWorked.text = endNote
-                payView.text = clock.calculatePay(rate, clock.startTime.
-                    getElapsedTimeSec(now)).toString()
+                payView.text = "$$pay"
 
             }
 
