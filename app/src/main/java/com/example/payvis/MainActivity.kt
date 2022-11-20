@@ -119,9 +119,10 @@ data class Clock(val startTime: Time){
     var rate: Double = 0.0
     var pay: Double = 0.0
 
-    fun update(){
+    fun update(): LocalDateTime{
         val now = LocalDateTime.now()
         this.sessionSeconds = startTime.getElapsedTimeSec(now)
+        return now
     }
 
     fun stop(){
@@ -145,7 +146,7 @@ data class Clock(val startTime: Time){
         val data: Map<String, String> = mapOf(
             "seconds" to this.totalSeconds.toString(),
             "pay" to pay.toString(),  // This allows pay to accumulate over sessions
-            "start" to this.startTime.toString(),
+            "start" to this.startTime.startTime.toString(),
             "finish" to end.toString()
         )
 
