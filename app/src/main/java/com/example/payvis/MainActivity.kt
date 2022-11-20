@@ -193,7 +193,9 @@ class MainActivity : AppCompatActivity() {
 
     fun clockFileExists(): Boolean{
         // Determines if the clock file has been created
-        return File("clock.pvcf").exists()
+        val result = File(applicationContext.filesDir, "clock.pvcf").exists()
+        println("[i] Clock file test result: $result")
+        return result
     }
 
     fun clockFileFormattedCorrect(): Boolean{
@@ -311,12 +313,14 @@ class MainActivity : AppCompatActivity() {
 
         if (clockFileExists() && clockFileFormattedCorrect() && clockActive()) {  // Active clock
             // Mark clock started and import settings
+            println("[i] Active clock detected")
             clock = loadClockFile()
             rateEntry.setText("${String.format("%.02f", clock.rate)}")  // Loads saved rate to entry
             clockStarted = true
 
         } else if (clockFileExists() && clockFileFormattedCorrect() && !clockActive()){
             // If the file is good and ready, but the clock was stopped
+            println("[i] Inactive but valid clock detected")
 
             // 1. Load permanent data
             clock = loadClockFile()
@@ -334,6 +338,7 @@ class MainActivity : AppCompatActivity() {
             clockStarted = false
 
         } else{
+            println("No valid clock detected")
             clockStarted = false
         }
 
