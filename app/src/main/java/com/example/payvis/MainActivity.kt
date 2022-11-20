@@ -281,6 +281,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun getRate(): Double{
+        val rate: Double
+        val notifyView = findViewById<TextView>(R.id.notify_view)
+        val rateEntry = findViewById<EditText>(R.id.current_wage_entry)
+
+        try{
+            rate = rateEntry.text.toString().toDouble()
+            notifyView.text = ""  // If there was previously an error, this wipes it
+            return rate
+        } catch(e: java.lang.NumberFormatException){
+            notifyView.text = "Please enter a number into \"Your Wage\""
+            return -404.4
+        } catch (t: Throwable){
+            notifyView.text = "ERROR: ${t.message}"
+            return -404.4
+        }
+    }
+
 
     // ============ APP ============
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -310,12 +328,21 @@ class MainActivity : AppCompatActivity() {
         var date = Time(LocalDateTime.now()).startTime.split(" ")[0]
         // The above gets the current time and grabs the date section (time and date separated by space)
         var fileDate: String  // This is the date found in the file
+        var now = LocalDateTime.now()
+        var rate: Double
+        var payDisp: Double
 
         if (clockFileExists() && clockFileFormattedCorrect() && clockActive()) {  // Active clock
             // Mark clock started and import settings
             println("[i] Active clock detected")
             clock = loadClockFile()
+
             rateEntry.setText("${String.format("%.02f", clock.rate)}")  // Loads saved rate to entry
+            rate = getRate()
+            timeWorked.text = "${clock.startTime.getElapsedTimeAsString(now)}"
+            payDisp = clock.calculatePay(rate, clock.startTime.getElapsedTimeSec(now))
+            payView.text = "$${String.format("%.02f", payDisp)} earned"
+
             clockStarted = true
 
         } else if (clockFileExists() && clockFileFormattedCorrect() && !clockActive()){
@@ -345,18 +372,13 @@ class MainActivity : AppCompatActivity() {
         // Create Listeners
         startButton.setOnClickListener{  // start or stop clock
             // 0. Ensure that necessary info exists
-            var rate: Double
-
-            try{
-                rate = rateEntry.text.toString().toDouble()
-                notifyView.text = ""  // If there was previously an error, this wipes it
-            } catch(e: java.lang.NumberFormatException){
-                notifyView.text = "Please enter a number into \"Your Wage\""
-                return@setOnClickListener
-            } catch (t: Throwable){
-                notifyView.text = "ERROR: ${t.message}"
+            var rate = getRate()
+            if (rate == -404.4){  // Something went wrong. Don't continue
                 return@setOnClickListener
             }
+
+
+
 
             // 1. Set up clock file if needed
             var startClock: Boolean
