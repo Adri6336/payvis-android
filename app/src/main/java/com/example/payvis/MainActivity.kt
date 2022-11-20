@@ -358,6 +358,7 @@ class MainActivity : AppCompatActivity() {
 
             if (!clockStarted){  // If clock hasn't been started
                 clock = Clock(Time(LocalDateTime.now()))  // Make a new one with current time
+                clock.rate = rate  // Save rate to clock object
                 createClockFile(clock)  // Save this clock to device
                 startClock = true  // We will need to start the clock
                 clockStarted = true
