@@ -49,6 +49,31 @@ data class Time(val initialTime: LocalDateTime){
         return (end - this.timeAsSeconds)
     }
 
+    fun statement(timePassed: Number, timeUnit: String): String{
+
+        val singular = when (timeUnit){
+            "hour" -> "hour"
+            "min" -> "minute"
+            "sec" -> "second"
+            else -> "$timeUnit"
+        }
+
+        val plural = when(timeUnit){
+            "hour" -> "hours"
+            "min" -> "minutes"
+            "sec" -> "seconds"
+            else -> "${timeUnit}s"
+        }
+
+        var timeText: String
+
+        if (timePassed.toInt() > 1) {timeText = "$timePassed $plural"}  // If there's more than one, it should be plural
+        else if (timePassed.toInt() == 1) {timeText = "$timePassed $singular"}
+        else {timeText = ""}
+
+        return timeText
+    }
+
     fun getElapsedTimeAsString(endTime: LocalDateTime): String{
         // Returns the time that elapsed between start and endTime as string
 
@@ -57,7 +82,7 @@ data class Time(val initialTime: LocalDateTime){
 
         // 1.01  Get around bug that occurs with time < 1 min
         if (elapsed < 60 && elapsed > 0){
-            return "$elapsed seconds"
+            return "${this.statement(elapsed.toInt(), "sec")} worked"
         }
         else if (elapsed < 1 && elapsed > -1){  // Catch infinitesimals
             return "No time passed"
@@ -74,19 +99,15 @@ data class Time(val initialTime: LocalDateTime){
         var hourText: String
         var minText: String
 
-        if (hours > 1){hourText = "$hours hours"}  // If there's more than one, it should be plural
-        else if (hours == 1) {hourText = "$hours hour"}
-        else {hourText = ""}
+        hourText = this.statement(hours, "hour")
+        minText = this.statement(minutes, "min")
 
-        if (minutes > 1.0){minText = "$minutes minutes"}
-        else if (minutes == 1.0){minText = "$minutes minute"}
-        else {minText = ""}
 
         // 3. Compile final string
         if (hours == 0 && minutes == 0.0){return ""}
-        else if (hours == 0 && minutes > 0.0){return "$minText"}
-        else if (hours > 0 && minutes == 0.0) {return "$hourText"}
-        else {return "$hourText and $minText"}
+        else if (hours == 0 && minutes > 0.0){return "$minText worked"}
+        else if (hours > 0 && minutes == 0.0) {return "$hourText worked"}
+        else {return "$hourText and $minText worked"}
     }
 }
 
@@ -184,9 +205,12 @@ class MainActivity : AppCompatActivity() {
             val active = clockData[2].toBoolean()
             val rate = clockData[3].toDouble()
             val sessionSeconds = clockData[4].toDouble()
+
+            println("[i] Clock file formatted correctly")
             return true
 
         } catch (t: Throwable){
+            println("[X] Clock file formatted incorrectly")
             return false
         }
     }
@@ -198,7 +222,14 @@ class MainActivity : AppCompatActivity() {
         val rate = clock.rate
         val sessionSeconds = clock.sessionSeconds
         val dataStr: String = "$timeStamp\n$totalSeconds\n$active\n$rate\n$sessionSeconds"
-        this.saveFile(dataStr, "clock.pvcf")
+
+        try{
+            this.saveFile(dataStr, "clock.pvcf")
+        } catch (t: Throwable){
+            println("[X] Clock file failed to save correctly")
+        }
+
+
     }
 
     fun loadClockFile(): Clock{
@@ -271,7 +302,7 @@ class MainActivity : AppCompatActivity() {
         payView.text = ""
 
         // Determine if clock file exists
-        var clockStarted = false  // If this remains false, app will make a new clock file at start
+        var clockStarted: Boolean  // If this remains false, app will make a new clock file at start
         var clock: Clock = Clock(Time(LocalDateTime.now()))  // Set equal to a place holder
         var date = Time(LocalDateTime.now()).startTime.split(" ")[0]
         // The above gets the current time and grabs the date section (time and date separated by space)
@@ -299,6 +330,10 @@ class MainActivity : AppCompatActivity() {
             // 3. Wipe session seconds regardless
             clock.sessionSeconds = 0.0
 
+            clockStarted = false
+
+        } else{
+            clockStarted = false
         }
 
         // Create Listeners
@@ -318,15 +353,19 @@ class MainActivity : AppCompatActivity() {
             }
 
             // 1. Set up clock file if needed
-            var startClock = false  // This determines how button will act (to start or stop)
+            var startClock: Boolean
 
             if (!clockStarted){  // If clock hasn't been started
                 clock = Clock(Time(LocalDateTime.now()))  // Make a new one with current time
                 createClockFile(clock)  // Save this clock to device
                 startClock = true  // We will need to start the clock
+                clockStarted = true
+                println("[i] Button pressed while clock inactive. Starting clock")
 
             } else{
                 startClock = false  // We will need to stop the clock
+                clockStarted = false
+                println("[i] Button pressed while clock active. Stopping clock")
             }
 
             // 2. Start clock or stop clock
@@ -348,12 +387,14 @@ class MainActivity : AppCompatActivity() {
                 clock.createDBEntry(rate)  // This calculates pay and enters it into db
                 dbJson = clock.makeJsonString()  // This converts db into json format
                 saveFile(dbJson, "payData.json")  // Save json to a file
+                println("[i] DB: ${readFile("payData.json")}")
 
                 // 2. Save clock data
                 pay = clock.calculatePay(rate, clock.startTime.getElapsedTimeSec(now))
                 clock.totalSeconds += clock.sessionSeconds  // Do this because session has ended
                 clock.active = false
                 createClockFile(clock)
+                println("[i] Clock file: ${readFile("clock.pvcf")}")
 
                 // 3. Output final data
                 timeWorked.text = endNote
