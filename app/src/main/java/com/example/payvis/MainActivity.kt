@@ -141,13 +141,13 @@ data class Clock(val startTime: Time){
         val day = startTime.dbEntryTag
 
         // 2. Create entry value
-        val end = this.update()  // Grabs the finishing time
+        val end = Time(this.update())  // Grabs the finishing time
         val pay = this.calculatePay(payRate, this.totalSeconds + this.sessionSeconds)
         val data: Map<String, String> = mapOf(
             "seconds" to this.totalSeconds.toString(),
             "pay" to pay.toString(),  // This allows pay to accumulate over sessions
-            "start" to this.startTime.startTime.toString(),
-            "finish" to end.toString()
+            "start" to this.startTime.startTime,
+            "finish" to end.startTime
         )
 
         // 3. Create entry in db
