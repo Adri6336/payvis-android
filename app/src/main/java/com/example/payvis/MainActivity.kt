@@ -57,18 +57,50 @@ data class Time(val initialTime: LocalDateTime){
         // This returns the elapsed time between the initialTime and endTime LocalDateTime
 
         val end = Time(endTime).timeAsSeconds
-        return (end - this.timeAsSeconds)
+        val difference = end - this.timeAsSeconds
+        println("DIFFERENCE: $difference")
+
+        if (difference > 0.0){return difference}
+        else {return 0.0}
     }
 
-    fun getElapsedTimeAsString(endTime: LocalDateTime): String{
+    fun statement(timePassed: Number, timeUnit: String): String{
+
+        val singular = when (timeUnit){
+            "hour" -> "hour"
+            "min" -> "minute"
+            "sec" -> "second"
+            else -> "$timeUnit"
+        }
+
+        val plural = when(timeUnit){
+            "hour" -> "hours"
+            "min" -> "minutes"
+            "sec" -> "seconds"
+            else -> "${timeUnit}s"
+        }
+
+        var timeText: String
+
+        if (timePassed.toInt() > 1) {timeText = "$timePassed $plural"}  // If there's more than one, it should be plural
+        else if (timePassed.toInt() == 1) {timeText = "$timePassed $singular"}
+        else {timeText = ""}
+
+        return timeText
+    }
+
+    fun getElapsedTimeAsString(endTime: LocalDateTime, elapSec: Double = -404.4): String{
         // Returns the time that elapsed between start and endTime as string
 
         // 1. Get the hour and minute count of time passed
-        val elapsed = this.getElapsedTimeSec(endTime)
+        val elapsed = when(elapSec){  // If we passed a value to elapSec, use it instead of endTime
+            -404.4 -> this.getElapsedTimeSec(endTime)
+            else -> elapSec
+        }
 
         // 1.01  Get around bug that occurs with time < 1 min
         if (elapsed < 60 && elapsed > 0){
-            return "$elapsed seconds"
+            return "${this.statement(elapsed.toInt(), "sec")} worked"
         }
         else if (elapsed < 1 && elapsed > -1){  // Catch infinitesimals
             return "No time passed"
@@ -85,30 +117,30 @@ data class Time(val initialTime: LocalDateTime){
         var hourText: String
         var minText: String
 
-        if (hours > 1){hourText = "$hours hours"}  // If there's more than one, it should be plural
-        else if (hours == 1) {hourText = "$hours hour"}
-        else {hourText = ""}
+        hourText = this.statement(hours, "hour")
+        minText = this.statement(minutes, "min")
 
-        if (minutes > 1.0){minText = "$minutes minutes"}
-        else if (minutes == 1.0){minText = "$minutes minute"}
-        else {minText = ""}
 
         // 3. Compile final string
         if (hours == 0 && minutes == 0.0){return ""}
-        else if (hours == 0 && minutes > 0.0){return "$minText"}
-        else if (hours > 0 && minutes == 0.0) {return "$hourText"}
-        else {return "$hourText and $minText"}
+        else if (hours == 0 && minutes > 0.0){return "$minText worked"}
+        else if (hours > 0 && minutes == 0.0) {return "$hourText worked"}
+        else {return "$hourText and $minText worked"}
     }
 }
 
 data class Clock(val startTime: Time){
     var totalSeconds: Double = 0.0
-    var active = true
+    var sessionSeconds: Double = 0.0
+    var active = false
     var dataBase: MutableMap<String, Map<String, String>> = mutableMapOf()  // day : total sec, pay, start, and end times
+    var rate: Double = 0.0
+    var pay: Double = 0.0
 
-    fun update(){
+    fun update(): LocalDateTime{
         val now = LocalDateTime.now()
-        this.totalSeconds = startTime.getElapsedTimeSec(now)
+        this.sessionSeconds = startTime.getElapsedTimeSec(now)
+        return now
     }
 
     fun stop(){
@@ -120,38 +152,44 @@ data class Clock(val startTime: Time){
         return (payPerSec * secondsWorked)
     }
 
-    fun createDBEntry(payRate: Double){
-        // This will create a map entry containing time worked and pay earned
+    fun createDBEntry(payRate: Double, endTime: Time){
+        /*
+        This will create a map entry containing time worked and pay earned
 
+        Note: the clock must be fully updated before this is called,
+        or the database will receive an inaccurate entry
+        */
         // 1. Get entry key
         val day = startTime.dbEntryTag
 
         // 2. Create entry value
-        val end = this.update()  // Grabs the finishing time
+        val end = endTime
         val pay = this.calculatePay(payRate, this.totalSeconds)
         val data: Map<String, String> = mapOf(
-            "seconds" to this.totalSeconds.toString(),
-            "pay" to pay.toString(),
-            "start" to this.startTime.toString(),
-            "finish" to end.toString()
+            "seconds" to this.totalSeconds.toString(),  // Total seconds should be updated before fun called
+            "pay" to pay.toString(),  // This allows pay to accumulate over sessions
+            "start" to this.startTime.startTime,
+            "finish" to end.startTime
         )
 
         // 3. Create entry in db
-        dataBase.put(day, data)
+        println("[i] DB BEFORE ADD: ${this.dataBase}")
+        this.dataBase.put(day, data)
+        println("[i] DB WITH ADD: ${this.dataBase}")
     }
 
     fun makeJsonString(): String{
         // Creates a json string of the database mutable map
         val gson = Gson()
-        val dbString: String = gson.toJson(this.dataBase, MutableMap::class.java)
+        val dbString: String = gson.toJson(this.dataBase, this.dataBase.javaClass)
         return dbString
     }
 
     fun loadJsonString(data: String){
         val gson = Gson()
-        val db = gson.fromJson(data, MutableMap::class.java)
+        val db = gson.fromJson(data, this.dataBase.javaClass)
+        this.dataBase = db
     }
-
 }
 
 
@@ -180,7 +218,9 @@ class MainActivity : AppCompatActivity() {
 
     fun clockFileExists(): Boolean{
         // Determines if the clock file has been created
-        return File("clock.pvcf").exists()
+        val result = File(applicationContext.filesDir, "clock.pvcf").exists()
+        println("[i] Clock file test result: $result")
+        return result
     }
 
     fun clockFileFormattedCorrect(): Boolean{
@@ -191,9 +231,14 @@ class MainActivity : AppCompatActivity() {
             val timeStamp = LocalDateTime.parse(clockData[0])
             val totalSec = clockData[1].toDouble()
             val active = clockData[2].toBoolean()
+            val rate = clockData[3].toDouble()
+            val sessionSeconds = clockData[4].toDouble()
+
+            println("[i] Clock file formatted correctly")
             return true
 
         } catch (t: Throwable){
+            println("[X] Clock file formatted incorrectly")
             return false
         }
     }
@@ -202,8 +247,28 @@ class MainActivity : AppCompatActivity() {
         val timeStamp = clock.startTime.initialTime.toString()
         val totalSeconds = clock.update()
         val active = clock.active
-        val dataStr: String = "$timeStamp\n$totalSeconds\n$active"
-        this.saveFile(dataStr, "clock.pvcf")
+        val rate = clock.rate
+        val sessionSeconds = clock.sessionSeconds
+        val dataStr: String = "$timeStamp\n$totalSeconds\n$active\n$rate\n$sessionSeconds"
+
+        try{
+            this.saveFile(dataStr, "clock.pvcf")
+        } catch (t: Throwable){
+            println("[X] Clock file failed to save correctly")
+        }
+    }
+
+    fun saveDBFile(clock: Clock){
+        // Grabs the mutable map json string from Clock object and saves it to a file
+        val dbJson = clock.makeJsonString()
+        saveFile(dbJson, "workDB.json")
+    }
+
+    fun loadDBFile(clock: Clock){
+        val dbJson = readFile("workDB.json")
+        println("[i] Found: $dbJson")
+        clock.loadJsonString(dbJson)
+        println("[i] Loaded: ${clock.dataBase}")
     }
 
     fun loadClockFile(): Clock{
@@ -217,26 +282,50 @@ class MainActivity : AppCompatActivity() {
         val timeStamp = LocalDateTime.parse(clockData[0])
         val totalSec = clockData[1].toDouble()
         val active = clockData[2].toBoolean()
+        val rate = clockData[3].toDouble()
+        val sessionSeconds = clockData[4].toDouble()
 
         // 2. Create objects
         val startTime: Time = Time(timeStamp)
         val newClock: Clock = Clock(startTime)
         newClock.totalSeconds = totalSec
         newClock.active = active
+        newClock.rate = rate
+        newClock.sessionSeconds = sessionSeconds
+        loadDBFile(newClock)
 
         return newClock
     }
 
-    fun saveDBFile(clock: Clock){
-        // Grabs the mutable map json string from Clock object and saves it to a file
-        val dbJson = clock.makeJsonString()
-        saveFile(dbJson, "workDB.json")
+
+    fun clockActive(): Boolean{
+        // Determines if clock active
+        val clockData = readFile("clock.pvcf").split("\n")
+        try{
+            return clockData[2].toBoolean()
+        } catch (t: Throwable){
+            return false
+        }
     }
 
-    fun loadDBFile(clock: Clock){
-        val dbJson = readFile("workDB.json")
-        clock.loadJsonString(dbJson)
+    fun getRate(): Double{
+        val rate: Double
+        val notifyView = findViewById<TextView>(R.id.notify_view)
+        val rateEntry = findViewById<EditText>(R.id.current_wage_entry)
+
+        try{
+            rate = rateEntry.text.toString().toDouble()
+            notifyView.text = ""  // If there was previously an error, this wipes it
+            return rate
+        } catch(e: java.lang.NumberFormatException){
+            notifyView.text = "Please enter a number into \"Your Wage\""
+            return -404.4
+        } catch (t: Throwable){
+            notifyView.text = "ERROR: ${t.message}"
+            return -404.4
+        }
     }
+
 
     // ============ APP ============
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -245,12 +334,137 @@ class MainActivity : AppCompatActivity() {
 
         // Connect elements from app
         val startButton = findViewById<Button>(R.id.start_button)
-        val livwageView = findViewById<TextView>(R.id.livwage_view2)
-        val timeWorked = findViewById<TextView>(R.id.time_worked_view)
+        val resetButton = findViewById<Button>(R.id.reset_time_button)
+        val displayPayButton = findViewById<Button>(R.id.display_pay_button)
+        val exportDataButton = findViewById<Button>(R.id.export_button)
 
+        val notifyView = findViewById<TextView>(R.id.notify_view)
+        val timeWorked = findViewById<TextView>(R.id.time_worked_view)
+        val payView = findViewById<TextView>(R.id.pay_view)
+
+        val rateEntry = findViewById<EditText>(R.id.current_wage_entry)
+
+        // Clear default text
+        notifyView.text = ""
+        timeWorked.text = ""
+        payView.text = ""
+
+        // Determine if clock file exists
+        var clockStarted: Boolean  // If this remains false, app will make a new clock file at start
+        var clock: Clock = Clock(Time(LocalDateTime.now()))  // Set equal to a place holder
+        var date = Time(LocalDateTime.now()).startTime.split(" ")[0]
+        // The above gets the current time and grabs the date section (time and date separated by space)
+        var fileDate: String  // This is the date found in the file
+        var now = LocalDateTime.now()
+        var rate: Double
+        var payDisp: Double
+
+        if (clockFileExists() && clockFileFormattedCorrect() && clockActive()) {  // Active clock
+            // Mark clock started and import settings
+            println("[i] Active clock detected")
+            clock = loadClockFile()
+
+            rateEntry.setText("${String.format("%.02f", clock.rate)}")  // Loads saved rate to entry
+            rate = getRate()
+            timeWorked.text = "${clock.startTime.getElapsedTimeAsString(now)}"
+            payDisp = clock.calculatePay(rate, clock.startTime.getElapsedTimeSec(now))
+            payView.text = "$${String.format("%.02f", payDisp)} earned"
+
+            clockStarted = true
+
+        } else if (clockFileExists() && clockFileFormattedCorrect() && !clockActive()){
+            // If the file is good and ready, but the clock was stopped
+            println("[i] Inactive but valid clock detected")
+
+            // 1. Load permanent data
+            clock = loadClockFile()
+            rateEntry.setText(String.format("%.02f", clock.rate))
+            fileDate = clock.startTime.startTime.split(" ")[0]
+            println("FILEDATE: $fileDate\nDATE: $date\nequal = ${fileDate == date}")
+
+
+            // 2. If last active was today, keep total seconds
+            if (fileDate != date){
+                clock.totalSeconds = 0.0
+            }
+
+            // 3. Wipe session seconds regardless
+            clock.sessionSeconds = 0.0
+            clockStarted = false
+
+        } else{
+            println("No valid clock detected")
+            clockStarted = false
+        }
 
         // Create Listeners
-        startButton.setOnClickListener{
+        startButton.setOnClickListener{  // start or stop clock
+            // 0. Ensure that necessary info exists
+            var rate = getRate()
+            if (rate == -404.4){  // Something went wrong. Don't continue
+                return@setOnClickListener
+            }
+
+            // 1. Set up clock file if needed
+            var startClock: Boolean
+            val totalSeconds = clock.totalSeconds  // Keep the original clock's total seconds, 0 if new clock
+
+            if (!clockStarted){  // If clock hasn't been started
+                clock = Clock(Time(LocalDateTime.now()))  // Make a new one with current time
+                clock.totalSeconds = totalSeconds
+                clock.rate = rate  // Save rate to clock object
+                clock.active = true
+                createClockFile(clock)  // Save this clock to device
+                startClock = true  // We will need to start the clock
+                clockStarted = true
+                println("[i] Button pressed while clock inactive. Starting clock")
+
+            } else{
+                startClock = false  // We will need to stop the clock
+                clockStarted = false
+                println("[i] Button pressed while clock active. Stopping clock")
+            }
+
+            // 2. Start clock or stop clock
+            val dbJson: String
+            var pay: Double
+            var totalSec: Double = 0.0
+
+            if (startClock){  // If we need to start the clock
+                notifyView.text = "Clock Started!"
+
+            } else{  // Otherwise if we need to stop the clock
+
+                // 1. Prep clock for db store
+                now = clock.update()  // Get current time
+                loadDBFile(clock)  // Ensure that the db has been loaded
+                println("[i] DB: ${readFile("workDB.json")}")
+
+                // 2. Save clock file
+                totalSec = clock.sessionSeconds + clock.totalSeconds
+                pay = clock.calculatePay(rate, totalSec)
+                clock.totalSeconds = totalSec  // Save total sec to clock before dbEntry fun called
+                clock.active = false
+                createClockFile(clock)
+                println("[i] Clock file: ${readFile("clock.pvcf")}")
+
+                // 3. Output final data and save db
+                println("TIME PASSED: ${clock.sessionSeconds}")
+                clock.createDBEntry(rate, Time(now))  // This calculates pay and enters it into db
+                saveDBFile(clock)  // Save json to a file with the added entry
+
+                notifyView.text = "Clock Stopped!"
+                timeWorked.text = "${clock.startTime.getElapsedTimeAsString(now, elapSec = totalSec)}"
+                payView.text = "$${String.format("%.02f", pay)} earned"
+
+            }
+        }
+
+        resetButton.setOnClickListener {
+
+        }
+
+        displayPayButton.setOnClickListener {
 
         }
 
