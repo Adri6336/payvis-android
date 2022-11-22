@@ -2,29 +2,18 @@
 // Icon made with money image found here: https://www.pngarts.com/files/3/Falling-Cash-Money-PNG-Photo.png
 package com.example.payvis
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.JsonWriter
-import android.util.Log
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.startActivity
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.Writer
-import java.math.RoundingMode
-import java.nio.file.Files.walk
-import java.security.AccessController.getContext
-import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.google.gson.Gson
-import kotlin.reflect.typeOf
 
 data class Time(val initialTime: LocalDateTime){
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -57,7 +46,11 @@ data class Time(val initialTime: LocalDateTime){
         // This returns the elapsed time between the initialTime and endTime LocalDateTime
 
         val end = Time(endTime).timeAsSeconds
-        return (end - this.timeAsSeconds)
+        val difference = end - this.timeAsSeconds
+        println("DIFFERENCE: $difference")
+
+        if (difference > 0.0){return difference}
+        else {return 0.0}
     }
 
     fun statement(timePassed: Number, timeUnit: String): String{
@@ -85,11 +78,14 @@ data class Time(val initialTime: LocalDateTime){
         return timeText
     }
 
-    fun getElapsedTimeAsString(endTime: LocalDateTime): String{
+    fun getElapsedTimeAsString(endTime: LocalDateTime, elapSec: Double = -404.4): String{
         // Returns the time that elapsed between start and endTime as string
 
         // 1. Get the hour and minute count of time passed
-        val elapsed = this.getElapsedTimeSec(endTime)
+        val elapsed = when(elapSec){  // If we passed a value to elapSec, use it instead of endTime
+            -404.4 -> this.getElapsedTimeSec(endTime)
+            else -> elapSec
+        }
 
         // 1.01  Get around bug that occurs with time < 1 min
         if (elapsed < 60 && elapsed > 0){
@@ -145,17 +141,21 @@ data class Clock(val startTime: Time){
         return (payPerSec * secondsWorked)
     }
 
-    fun createDBEntry(payRate: Double){
-        // This will create a map entry containing time worked and pay earned
+    fun createDBEntry(payRate: Double, endTime: Time){
+        /*
+        This will create a map entry containing time worked and pay earned
 
+        Note: the clock must be fully updated before this is called,
+        or the database will receive an inaccurate entry
+        */
         // 1. Get entry key
         val day = startTime.dbEntryTag
 
         // 2. Create entry value
-        val end = Time(this.update())  // Grabs the finishing time
-        val pay = this.calculatePay(payRate, this.totalSeconds + this.sessionSeconds)
+        val end = endTime
+        val pay = this.calculatePay(payRate, this.totalSeconds)
         val data: Map<String, String> = mapOf(
-            "seconds" to this.totalSeconds.toString(),
+            "seconds" to this.totalSeconds.toString(),  // Total seconds should be updated before fun called
             "pay" to pay.toString(),  // This allows pay to accumulate over sessions
             "start" to this.startTime.startTime,
             "finish" to end.startTime
@@ -234,7 +234,7 @@ class MainActivity : AppCompatActivity() {
 
     fun createClockFile(clock: Clock){
         val timeStamp = clock.startTime.initialTime.toString()
-        val totalSeconds = clock.update()
+        val totalSeconds = clock.totalSeconds
         val active = clock.active
         val rate = clock.rate
         val sessionSeconds = clock.sessionSeconds
@@ -368,8 +368,8 @@ class MainActivity : AppCompatActivity() {
             // 1. Load permanent data
             clock = loadClockFile()
             rateEntry.setText(String.format("%.02f", clock.rate))
-            fileDate = clock.startTime.startTime.split(" ")[1]
-
+            fileDate = clock.startTime.startTime.split(" ")[0]
+            println("FILEDATE: $fileDate\nDATE: $date\nequal = ${fileDate == date}")
 
             // 2. If last active was today, keep total seconds
             if (fileDate != date){
@@ -395,9 +395,11 @@ class MainActivity : AppCompatActivity() {
 
             // 1. Set up clock file if needed
             var startClock: Boolean
+            val totalSeconds = clock.totalSeconds  // Keep the original clock's total seconds, 0 if new clock
 
             if (!clockStarted){  // If clock hasn't been started
                 clock = Clock(Time(LocalDateTime.now()))  // Make a new one with current time
+                clock.totalSeconds = totalSeconds
                 clock.rate = rate  // Save rate to clock object
                 clock.active = true
                 createClockFile(clock)  // Save this clock to device
@@ -414,6 +416,7 @@ class MainActivity : AppCompatActivity() {
             // 2. Start clock or stop clock
             val dbJson: String
             var pay: Double
+            var totalSec: Double = 0.0
 
             if (startClock){  // If we need to start the clock
                 notifyView.text = "Clock Started!"
@@ -421,22 +424,25 @@ class MainActivity : AppCompatActivity() {
             } else{  // Otherwise if we need to stop the clock
 
                 // 1. Prep clock for db store
-                now = LocalDateTime.now()  // Get current time
+                now = clock.update()  // Get current time
                 loadDBFile(clock)  // Ensure that the db has been loaded
-                clock.createDBEntry(rate)  // This calculates pay and enters it into db
-                saveDBFile(clock)  // Save json to a file with the added entry
                 println("[i] DB: ${readFile("workDB.json")}")
 
-                // 2. Save clock data
-                pay = clock.calculatePay(rate, clock.startTime.getElapsedTimeSec(now))
-                clock.totalSeconds += clock.sessionSeconds  // Do this because session has ended
+                // 2. Save clock file
+                totalSec = clock.sessionSeconds + clock.totalSeconds
+                pay = clock.calculatePay(rate, totalSec)
+                clock.totalSeconds = totalSec  // Save total sec to clock before dbEntry fun called
                 clock.active = false
                 createClockFile(clock)
                 println("[i] Clock file: ${readFile("clock.pvcf")}")
 
-                // 3. Output final data
+                // 3. Output final data and save db
+                println("TIME PASSED: ${clock.sessionSeconds}")
+                clock.createDBEntry(rate, Time(now))  // This calculates pay and enters it into db
+                saveDBFile(clock)  // Save json to a file with the added entry
+
                 notifyView.text = "Clock Stopped!"
-                timeWorked.text = "${clock.startTime.getElapsedTimeAsString(now)}"
+                timeWorked.text = "${clock.startTime.getElapsedTimeAsString(now, elapSec = totalSec)}"
                 payView.text = "$${String.format("%.02f", pay)} earned"
 
             }
