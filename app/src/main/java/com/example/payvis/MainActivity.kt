@@ -14,6 +14,8 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializer
 
 data class Time(val initialTime: LocalDateTime){
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -134,6 +136,7 @@ data class Clock(val startTime: Time){
         return (payPerSec * secondsWorked)
     }
 
+
     fun createDBEntry(payRate: Double){
         // This will create a map entry containing time worked and pay earned
 
@@ -151,19 +154,22 @@ data class Clock(val startTime: Time){
         )
 
         // 3. Create entry in db
-        dataBase.put(day, data)
+        println("[i] DB BEFORE ADD: ${this.dataBase}")
+        this.dataBase.put(day, data)
+        println("[i] DB WITH ADD: ${this.dataBase}")
     }
 
     fun makeJsonString(): String{
         // Creates a json string of the database mutable map
         val gson = Gson()
-        val dbString: String = gson.toJson(this.dataBase, MutableMap::class.java)
+        val dbString: String = gson.toJson(this.dataBase, this.dataBase.javaClass)
         return dbString
     }
 
     fun loadJsonString(data: String){
         val gson = Gson()
-        val db = gson.fromJson(data, MutableMap::class.java)
+        val db = gson.fromJson(data, this.dataBase.javaClass)
+        this.dataBase = db
     }
 }
 
@@ -235,6 +241,19 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    fun saveDBFile(clock: Clock){
+        // Grabs the mutable map json string from Clock object and saves it to a file
+        val dbJson = clock.makeJsonString()
+        saveFile(dbJson, "workDB.json")
+    }
+
+    fun loadDBFile(clock: Clock){
+        val dbJson = readFile("workDB.json")
+        println("[i] Found: $dbJson")
+        clock.loadJsonString(dbJson)
+        println("[i] Loaded: ${clock.dataBase}")
+    }
+
     fun loadClockFile(): Clock{
         /*
         Opens the clock file, grabs the data within, and creates a new
@@ -256,20 +275,11 @@ class MainActivity : AppCompatActivity() {
         newClock.active = active
         newClock.rate = rate
         newClock.sessionSeconds = sessionSeconds
+        loadDBFile(newClock)
 
         return newClock
     }
 
-    fun saveDBFile(clock: Clock){
-        // Grabs the mutable map json string from Clock object and saves it to a file
-        val dbJson = clock.makeJsonString()
-        saveFile(dbJson, "workDB.json")
-    }
-
-    fun loadDBFile(clock: Clock){
-        val dbJson = readFile("workDB.json")
-        clock.loadJsonString(dbJson)
-    }
 
     fun clockActive(): Boolean{
         // Determines if clock active
@@ -361,7 +371,6 @@ class MainActivity : AppCompatActivity() {
 
             // 3. Wipe session seconds regardless
             clock.sessionSeconds = 0.0
-
             clockStarted = false
 
         } else{
@@ -386,6 +395,7 @@ class MainActivity : AppCompatActivity() {
             if (!clockStarted){  // If clock hasn't been started
                 clock = Clock(Time(LocalDateTime.now()))  // Make a new one with current time
                 clock.rate = rate  // Save rate to clock object
+                clock.active = true
                 createClockFile(clock)  // Save this clock to device
                 startClock = true  // We will need to start the clock
                 clockStarted = true
@@ -402,18 +412,16 @@ class MainActivity : AppCompatActivity() {
             var pay: Double
 
             if (startClock){  // If we need to start the clock
-                clock.active = true  // this needs to be saved to file
-                createClockFile(clock)  // Save the newly created clock object
                 notifyView.text = "Clock Started!"
 
             } else{  // Otherwise if we need to stop the clock
 
                 // 1. Prep clock for db store
                 now = LocalDateTime.now()  // Get current time
+                loadDBFile(clock)  // Ensure that the db has been loaded
                 clock.createDBEntry(rate)  // This calculates pay and enters it into db
-                dbJson = clock.makeJsonString()  // This converts db into json format
-                saveFile(dbJson, "payData.json")  // Save json to a file
-                println("[i] DB: ${readFile("payData.json")}")
+                saveDBFile(clock)  // Save json to a file with the added entry
+                println("[i] DB: ${readFile("workDB.json")}")
 
                 // 2. Save clock data
                 pay = clock.calculatePay(rate, clock.startTime.getElapsedTimeSec(now))
@@ -433,6 +441,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         resetButton.setOnClickListener {
+            var file: MutableList<String> = readFile("clock.pvcf").split("\n").toMutableList()
+            file[0] = "2022-11-20T08:55:40.631"
+            var content = ""
+
+            for (line in file){
+                content += "$line\n"
+            }
+            saveFile(content, "clock.pvcf")
 
         }
 
