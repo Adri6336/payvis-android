@@ -398,9 +398,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             // 2. Start clock or stop clock
-            val endNote: String
             val dbJson: String
-            var now: LocalDateTime
             var pay: Double
 
             if (startClock){  // If we need to start the clock
@@ -412,7 +410,6 @@ class MainActivity : AppCompatActivity() {
 
                 // 1. Prep clock for db store
                 now = LocalDateTime.now()  // Get current time
-                endNote = clock.startTime.getElapsedTimeAsString(now)  // Get elapsed time str
                 clock.createDBEntry(rate)  // This calculates pay and enters it into db
                 dbJson = clock.makeJsonString()  // This converts db into json format
                 saveFile(dbJson, "payData.json")  // Save json to a file
@@ -426,8 +423,9 @@ class MainActivity : AppCompatActivity() {
                 println("[i] Clock file: ${readFile("clock.pvcf")}")
 
                 // 3. Output final data
-                timeWorked.text = endNote
-                payView.text = "$$pay"
+                notifyView.text = "Clock Stopped!"
+                timeWorked.text = "${clock.startTime.getElapsedTimeAsString(now)}"
+                payView.text = "$${String.format("%.02f", pay)} earned"
 
             }
 
