@@ -2,18 +2,29 @@
 // Icon made with money image found here: https://www.pngarts.com/files/3/Falling-Cash-Money-PNG-Photo.png
 package com.example.payvis
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.JsonWriter
+import android.util.Log
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.Writer
+import java.math.RoundingMode
+import java.nio.file.Files.walk
+import java.security.AccessController.getContext
+import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.google.gson.Gson
+import kotlin.reflect.typeOf
 
 data class Time(val initialTime: LocalDateTime){
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -234,7 +245,7 @@ class MainActivity : AppCompatActivity() {
 
     fun createClockFile(clock: Clock){
         val timeStamp = clock.startTime.initialTime.toString()
-        val totalSeconds = clock.totalSeconds
+        val totalSeconds = clock.update()
         val active = clock.active
         val rate = clock.rate
         val sessionSeconds = clock.sessionSeconds
@@ -370,6 +381,7 @@ class MainActivity : AppCompatActivity() {
             rateEntry.setText(String.format("%.02f", clock.rate))
             fileDate = clock.startTime.startTime.split(" ")[0]
             println("FILEDATE: $fileDate\nDATE: $date\nequal = ${fileDate == date}")
+
 
             // 2. If last active was today, keep total seconds
             if (fileDate != date){
