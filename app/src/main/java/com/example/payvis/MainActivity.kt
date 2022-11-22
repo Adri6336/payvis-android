@@ -448,8 +448,56 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        resetButton.setOnClickListener {
+        // ===========================================================
+        // ================Reset Button===============================
+        // ===========================================================
+        var pressCt = 0  // This will track how many times a user pressed reset in session
+        val emptyClock = Clock(Time(LocalDateTime.now()))
+        var newClockStarted = false  // This will be used to reset ct if count started
 
+        resetButton.setOnClickListener {
+            // 1. Try to grab clock file
+            var clockFile: MutableList<String> = mutableListOf()
+            var newClockFile = ""
+
+            try{
+                clockFile = readFile("clock.pvcf").split("\n").toMutableList()
+            } catch (t: Throwable){  // This is almost certainly just the file not existing
+                println("[X] $t")
+                return@setOnClickListener
+            }
+
+            // 2. Act according to the number of presses
+            if (pressCt < 3){
+                notifyView.text = "${3 - pressCt} presses until day data purged"
+            }
+            else if (pressCt == 3){  // Purge day's data
+                println("[i] CF BEFORE PURGE: ${readFile("clock.pvcf")}")
+                // 2.1  Assign values to zero and clock to inactive
+                clockFile[1] = "0.0"  // Total seconds
+                clockFile[2] = false.toString()  // Active state
+                clockFile[4] = "0.0"  // Session seconds
+
+                // 2.2 Save new purged clockFile
+                for (item in clockFile){
+                    newClockFile += "$item\n"
+                }
+                saveFile(newClockFile, "clock.pvcf")
+
+                // 2.3 Notify user of purge
+                println("[i] CF AFTER PURGE: ${readFile("clock.pvcf")}")
+                clock = loadClockFile()  // Resets session's clock
+                notifyView.text = "Day's data purged"
+            }
+            else if (pressCt in 4..19){
+                notifyView.text = "${20 - pressCt} presses until database wipe"
+            }
+            else if (pressCt >= 20){  // Purge entire db
+                saveDBFile(emptyClock)  // This will save the db of the empty clock, overwriting old one
+                notifyView.text = "Database has been wiped"
+            }
+
+            pressCt++
         }
 
         displayPayButton.setOnClickListener {
