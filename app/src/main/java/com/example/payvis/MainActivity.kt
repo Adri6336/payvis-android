@@ -14,8 +14,6 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializer
 
 data class Time(val initialTime: LocalDateTime){
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -136,7 +134,6 @@ data class Clock(val startTime: Time){
         return (payPerSec * secondsWorked)
     }
 
-
     fun createDBEntry(payRate: Double){
         // This will create a map entry containing time worked and pay earned
 
@@ -237,8 +234,6 @@ class MainActivity : AppCompatActivity() {
         } catch (t: Throwable){
             println("[X] Clock file failed to save correctly")
         }
-
-
     }
 
     fun saveDBFile(clock: Clock){
@@ -386,9 +381,6 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-
-
-
             // 1. Set up clock file if needed
             var startClock: Boolean
 
@@ -436,19 +428,9 @@ class MainActivity : AppCompatActivity() {
                 payView.text = "$${String.format("%.02f", pay)} earned"
 
             }
-
-
         }
 
         resetButton.setOnClickListener {
-            var file: MutableList<String> = readFile("clock.pvcf").split("\n").toMutableList()
-            file[0] = "2022-11-20T08:55:40.631"
-            var content = ""
-
-            for (line in file){
-                content += "$line\n"
-            }
-            saveFile(content, "clock.pvcf")
 
         }
 
