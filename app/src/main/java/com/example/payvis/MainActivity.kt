@@ -525,6 +525,26 @@ class MainActivity : AppCompatActivity() {
         // ================Display Pay Button=========================
         // ===========================================================
         displayPayButton.setOnClickListener {
+            var pay: Double
+            now = clock.update()  // Update before accessing data required
+            val totalSec = clock.sessionSeconds + clock.totalSeconds
+
+            when (clockStarted){
+                true -> {
+                    // 1. Clear notifications
+                    notifyView.text = ""
+                    timeWorked.text = ""
+                    payView.text = ""
+
+                    // 2. Display pay to screen
+                    pay = clock.calculatePay(clock.rate, totalSec)
+                    timeWorked.text = "${clock.startTime.getElapsedTimeAsString(now, elapSec = totalSec)}"
+                    payView.text = "$${String.format("%.02f", pay)} earned"
+                }
+                false -> {
+                    notifyView.text = "Start clock first to display pay"
+                }
+            }
 
         }
 
