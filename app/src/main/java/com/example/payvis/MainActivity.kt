@@ -495,9 +495,13 @@ class MainActivity : AppCompatActivity() {
                 }
                 saveFile(newClockFile, "clock.pvcf")
 
-                // 2.3 Notify user of purge
-                println("[i] CF AFTER PURGE: ${readFile("clock.pvcf")}")
+                // 2.3 Reset clock
                 clock = loadClockFile()  // Resets session's clock
+                clockStarted = false
+
+                // 2.4 Notify user of purge
+                println("[i] CF AFTER PURGE: ${readFile("clock.pvcf")}")
+
                 notifyView.text = "Day's data purged"
             }
             else if (pressCt in 4..19){
