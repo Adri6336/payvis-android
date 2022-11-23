@@ -10,10 +10,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.google.gson.Gson
+import java.net.URI
 
 data class Time(val initialTime: LocalDateTime){
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -593,7 +595,36 @@ class MainActivity : AppCompatActivity() {
         // ================Export Button==============================
         // ===========================================================
         exportDataButton.setOnClickListener {
-            notifyView.text = "Export feature not developed yet"
+            var uri: Uri
+            val intent = Intent(Intent.ACTION_SEND)
+
+
+            try{
+
+                // 1. Get uri
+                if (File(applicationContext.filesDir, "workDB.json").exists()){
+                    uri = FileProvider.getUriForFile(
+                        this@MainActivity,
+                        "com.example.payvis.MainActivity",
+                        File(applicationContext.filesDir, "workDB.json")
+                    )
+
+                    // 2. Share
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    intent.setType("*/*")
+                    intent.putExtra(Intent.EXTRA_STREAM, uri)
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+
+                }
+
+
+            } catch (t: Throwable){
+                notifyView.text = "Unable to export file: $t"
+                println("[X] Failed to export file: $t")
+            }
+
+
         }
 
 
