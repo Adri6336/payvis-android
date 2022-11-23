@@ -260,6 +260,44 @@ class MainActivity : AppCompatActivity() {
         println("[i] Loaded: ${clock.dataBase}")
     }
 
+    fun setupDB(){
+        /*
+        This will test the db file. If something is wrong with it, it will create a new,
+        blank db file.
+         */
+        // Variables
+        var dbExists = false
+        var dbFormattedCorrectly = false
+        var dataBaseSample: MutableMap<String, Map<String, String>> = mutableMapOf()
+        var dbJsonString = ""
+        val gson = Gson()
+
+        // 1. Test existence
+        dbExists = File(applicationContext.filesDir, "workDB.json").exists()
+
+        // 2. Test if formatted correctly
+
+        try{
+            dbJsonString = readFile("workDB.json")
+            dataBaseSample = gson.fromJson(dbJsonString, dataBaseSample.javaClass)
+            dbFormattedCorrectly = true
+
+        } catch (t: Throwable){
+            println("[X] DB FORMAT ERROR: $t")
+        }
+
+        // 3. Return if everything is okay, or remediate
+        dataBaseSample = mutableMapOf()  // This should wipe the db
+
+        if (dbExists && dbFormattedCorrectly){
+            return
+        } else {
+            dbJsonString = gson.toJson(dataBaseSample, dataBaseSample.javaClass)
+            saveFile(dbJsonString, "workDB.json")
+        }
+    }
+
+
     fun loadClockFile(): Clock{
         /*
         Opens the clock file, grabs the data within, and creates a new
@@ -340,6 +378,9 @@ class MainActivity : AppCompatActivity() {
 
         // Other Variables
         var startButtonPressed = false  // This will be used to reset ct if count started
+
+        // Setup DataBase
+        setupDB()
 
         // Determine if clock file exists
         var clockStarted: Boolean  // If this remains false, app will make a new clock file at start
