@@ -10,8 +10,9 @@
     <TextView
         android:id="@+id/pay_view"
         android:layout_width="wrap_content"
-        android:layout_height="36dp"
+        android:layout_height="wrap_content"
         android:text="ENTER PAY HERE"
+        android:textAlignment="center"
         android:textColor="@android:color/holo_green_dark"
         android:textSize="28sp"
         android:textStyle="bold"
@@ -24,7 +25,7 @@
 
     <Button
         android:id="@+id/reset_time_button"
-        android:layout_width="210dp"
+        android:layout_width="180dp"
         android:layout_height="80dp"
         android:layout_marginStart="15dp"
         android:backgroundTint="#a82322"
@@ -32,16 +33,16 @@
         android:text="Reset Clock"
         android:textColor="@color/white"
         android:textSize="17sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/export_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider"
-        app:layout_constraintVertical_bias="0.553" />
+        app:layout_constraintVertical_bias="0.826" />
 
     <Button
         android:id="@+id/display_pay_button"
-        android:layout_width="210dp"
+        android:layout_width="180dp"
         android:layout_height="80dp"
         android:layout_marginEnd="15dp"
         android:backgroundTint="#007bc1"
@@ -58,7 +59,7 @@
 
     <Button
         android:id="@+id/export_button"
-        android:layout_width="210dp"
+        android:layout_width="180dp"
         android:layout_height="80dp"
         android:layout_marginStart="15dp"
         android:backgroundTint="#d3bd00"
@@ -75,19 +76,19 @@
 
     <Button
         android:id="@+id/start_button"
-        android:layout_width="210dp"
+        android:layout_width="180dp"
         android:layout_height="80dp"
         android:layout_marginEnd="15dp"
         android:backgroundTintMode="add"
         android:text="Start / Stop Count"
         android:textColor="@color/white"
         android:textSize="17sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/display_pay_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.995"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider"
-        app:layout_constraintVertical_bias="0.553" />
+        app:layout_constraintVertical_bias="0.826" />
 
     <View
         android:id="@+id/divider"
@@ -129,9 +130,11 @@
         android:id="@+id/current_wage_entry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="9"
-        android:maxLength="9"
+        android:layout_marginEnd="15dp"
+        android:ems="6"
         android:inputType="numberDecimal"
+        android:maxLength="9"
+        android:textAlignment="center"
         android:textSize="25sp"
         app:layout_constraintBottom_toBottomOf="@+id/current_wage_box"
         app:layout_constraintEnd_toEndOf="parent"
@@ -143,8 +146,9 @@
     <TextView
         android:id="@+id/time_worked_view"
         android:layout_width="wrap_content"
-        android:layout_height="36dp"
+        android:layout_height="wrap_content"
         android:text="ENTER TIME HERE"
+        android:textAlignment="center"
         android:textColor="@android:color/holo_green_dark"
         android:textSize="28sp"
         android:textStyle="bold"
@@ -158,8 +162,9 @@
     <TextView
         android:id="@+id/notify_view"
         android:layout_width="wrap_content"
-        android:layout_height="36dp"
+        android:layout_height="wrap_content"
         android:text="NOTIFICATION"
+        android:textAlignment="center"
         android:textColor="@android:color/holo_red_dark"
         android:textSize="28sp"
         android:textStyle="bold"
