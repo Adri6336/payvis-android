@@ -338,6 +338,9 @@ class MainActivity : AppCompatActivity() {
         timeWorked.text = ""
         payView.text = ""
 
+        // Other Variables
+        var startButtonPressed = false  // This will be used to reset ct if count started
+
         // Determine if clock file exists
         var clockStarted: Boolean  // If this remains false, app will make a new clock file at start
         var clock: Clock = Clock(Time(LocalDateTime.now()))  // Set equal to a place holder
@@ -387,6 +390,8 @@ class MainActivity : AppCompatActivity() {
 
         // Create Listeners
         startButton.setOnClickListener{  // start or stop clock
+            startButtonPressed = true
+
             // 0. Ensure that necessary info exists
             var rate = getRate()
             if (rate == -404.4){  // Something went wrong. Don't continue
@@ -448,8 +453,68 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        resetButton.setOnClickListener {
+        // ===========================================================
+        // ================Reset Button===============================
+        // ===========================================================
+        var pressCt = 0  // This will track how many times a user pressed reset in session
+        val emptyClock = Clock(Time(LocalDateTime.now()))
 
+        resetButton.setOnClickListener {
+            // 0. Determine if clock just started
+            // If a new clock or file was created, user may want to purge again
+            if (pressCt > 0 && startButtonPressed){
+                pressCt = 0  // Reset count
+                startButtonPressed = false
+            }
+
+            // 1. Try to grab clock file
+            var clockFile: MutableList<String> = mutableListOf()
+            var newClockFile = ""
+
+            try{
+                clockFile = readFile("clock.pvcf").split("\n").toMutableList()
+            } catch (t: Throwable){  // This is almost certainly just the file not existing
+                println("[X] $t")
+                return@setOnClickListener
+            }
+
+            // 2. Act according to the number of presses
+            if (pressCt < 3){
+                notifyView.text = "${3 - pressCt} presses until day data purged"
+            }
+            else if (pressCt == 3){  // Purge day's data
+                println("[i] CF BEFORE PURGE: ${readFile("clock.pvcf")}")
+                // 2.1  Assign values to zero and clock to inactive
+                clockFile[1] = "0.0"  // Total seconds
+                clockFile[2] = false.toString()  // Active state
+                clockFile[4] = "0.0"  // Session seconds
+
+                // 2.2 Save new purged clockFile
+                for (item in clockFile){
+                    newClockFile += "$item\n"
+                }
+                saveFile(newClockFile, "clock.pvcf")
+
+                // 2.3 Reset clock
+                clock = loadClockFile()  // Resets session's clock
+                clockStarted = false
+
+                // 2.4 Notify user of purge and clean screen
+                println("[i] CF AFTER PURGE: ${readFile("clock.pvcf")}")
+
+                payView.text = ""
+                timeWorked.text = ""
+                notifyView.text = "Day's data purged"
+            }
+            else if (pressCt in 4..19){
+                notifyView.text = "${20 - pressCt} presses until database wipe"
+            }
+            else if (pressCt >= 20){  // Purge entire db
+                saveDBFile(emptyClock)  // This will save the db of the empty clock, overwriting old one
+                notifyView.text = "Database has been wiped"
+            }
+
+            pressCt++
         }
 
         displayPayButton.setOnClickListener {
