@@ -552,7 +552,7 @@ class MainActivity : AppCompatActivity() {
         // ================Export Button==============================
         // ===========================================================
         exportDataButton.setOnClickListener {
-
+            notifyView.text = "Export feature not developed yet"
         }
 
 
