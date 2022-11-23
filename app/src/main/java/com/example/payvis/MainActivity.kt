@@ -338,6 +338,9 @@ class MainActivity : AppCompatActivity() {
         timeWorked.text = ""
         payView.text = ""
 
+        // Other Variables
+        var startButtonPressed = false  // This will be used to reset ct if count started
+
         // Determine if clock file exists
         var clockStarted: Boolean  // If this remains false, app will make a new clock file at start
         var clock: Clock = Clock(Time(LocalDateTime.now()))  // Set equal to a place holder
@@ -387,6 +390,8 @@ class MainActivity : AppCompatActivity() {
 
         // Create Listeners
         startButton.setOnClickListener{  // start or stop clock
+            startButtonPressed = true
+
             // 0. Ensure that necessary info exists
             var rate = getRate()
             if (rate == -404.4){  // Something went wrong. Don't continue
@@ -453,9 +458,15 @@ class MainActivity : AppCompatActivity() {
         // ===========================================================
         var pressCt = 0  // This will track how many times a user pressed reset in session
         val emptyClock = Clock(Time(LocalDateTime.now()))
-        var newClockStarted = false  // This will be used to reset ct if count started
 
         resetButton.setOnClickListener {
+            // 0. Determine if clock just started
+            // If a new clock or file was created, user may want to purge again
+            if (pressCt > 0 && startButtonPressed){
+                pressCt = 0  // Reset count
+                startButtonPressed = false
+            }
+
             // 1. Try to grab clock file
             var clockFile: MutableList<String> = mutableListOf()
             var newClockFile = ""
