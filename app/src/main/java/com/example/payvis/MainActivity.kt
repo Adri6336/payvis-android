@@ -389,6 +389,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Create Listeners
+        // ===========================================================
+        // ================Start/Stop Button==========================
+        // ===========================================================
+
         startButton.setOnClickListener{  // start or stop clock
             startButtonPressed = true
 
@@ -517,9 +521,20 @@ class MainActivity : AppCompatActivity() {
             pressCt++
         }
 
+        // ===========================================================
+        // ================Display Pay Button=========================
+        // ===========================================================
         displayPayButton.setOnClickListener {
 
         }
+
+        // ===========================================================
+        // ================Export Button==============================
+        // ===========================================================
+        exportDataButton.setOnClickListener {
+
+        }
+
 
     }
 }
