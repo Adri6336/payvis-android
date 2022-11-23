@@ -499,9 +499,11 @@ class MainActivity : AppCompatActivity() {
                 clock = loadClockFile()  // Resets session's clock
                 clockStarted = false
 
-                // 2.4 Notify user of purge
+                // 2.4 Notify user of purge and clean screen
                 println("[i] CF AFTER PURGE: ${readFile("clock.pvcf")}")
 
+                payView.text = ""
+                timeWorked.text = ""
                 notifyView.text = "Day's data purged"
             }
             else if (pressCt in 4..19){
