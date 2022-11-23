@@ -605,7 +605,7 @@ class MainActivity : AppCompatActivity() {
                 if (File(applicationContext.filesDir, "workDB.json").exists()){
                     uri = FileProvider.getUriForFile(
                         this@MainActivity,
-                        "com.example.payvis",
+                        "com.example.payvis.MainActivity",
                         File(applicationContext.filesDir, "workDB.json")
                     )
 
@@ -618,8 +618,9 @@ class MainActivity : AppCompatActivity() {
 
                 }
 
+
             } catch (t: Throwable){
-                notifyView.text = "Unable to export file"
+                notifyView.text = "Unable to export file: $t"
                 println("[X] Failed to export file: $t")
             }
 
