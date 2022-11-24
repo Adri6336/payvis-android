@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter
 import com.google.gson.Gson
 import java.net.URI
 
+
 data class Time(val initialTime: LocalDateTime){
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     val startTime = initialTime.format(formatter)
@@ -120,6 +121,7 @@ data class Time(val initialTime: LocalDateTime){
     }
 }
 
+
 data class Clock(val startTime: Time){
     var totalSeconds: Double = 0.0
     var sessionSeconds: Double = 0.0
@@ -200,7 +202,6 @@ data class Clock(val startTime: Time){
 class MainActivity : AppCompatActivity() {
 
     // ============ FUNCTIONS ============
-
     fun goTo(url: String){
         // Opens browser pointing to url passed
         // https://stackoverflow.com/questions/5026349/how-to-open-a-website-when-a-button-is-clicked-in-android-application
@@ -312,7 +313,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     fun loadClockFile(): Clock{
         /*
         Opens the clock file, grabs the data within, and creates a new
@@ -338,7 +338,6 @@ class MainActivity : AppCompatActivity() {
 
         return newClock
     }
-
 
     fun clockActive(): Boolean{
         // Determines if clock active
@@ -373,6 +372,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // ===========================================================
+        // ================Startup====================================
+        // ===========================================================
 
         // Connect elements from app
         val startButton = findViewById<Button>(R.id.start_button)
@@ -608,7 +611,6 @@ class MainActivity : AppCompatActivity() {
                     notifyView.text = "Start clock first to display pay"
                 }
             }
-
         }
 
         // ===========================================================
@@ -618,9 +620,7 @@ class MainActivity : AppCompatActivity() {
             var uri: Uri
             val intent = Intent(Intent.ACTION_SEND)
 
-
             try{
-
                 // 1. Get uri
                 if (File(applicationContext.filesDir, "workDB.json").exists()){
                     uri = FileProvider.getUriForFile(
@@ -635,18 +635,11 @@ class MainActivity : AppCompatActivity() {
                     intent.putExtra(Intent.EXTRA_STREAM, uri)
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(intent)
-
                 }
-
-
             } catch (t: Throwable){
                 notifyView.text = "Unable to export file: $t"
                 println("[X] Failed to export file: $t")
             }
-
-
         }
-
-
     }
 }
