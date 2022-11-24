@@ -127,7 +127,7 @@ data class Time(val initialTime: LocalDateTime){
         else if (hours > 0 && minutesI == 0 && seconds > 0) {return "$hourText, $secText worked"}
         else if (hours > 0 && minutes > 0 && seconds == 0){return "$hourText, $minText worked"}
         else if (hours > 0 && minutesI == 0 && seconds == 0){return "$hourText"}
-        else {return "$hourText and $minText and $secText worked"}
+        else {return "$hourText, $minText, and $secText worked"}
     }
 }
 
