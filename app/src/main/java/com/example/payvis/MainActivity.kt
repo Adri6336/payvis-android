@@ -390,6 +390,9 @@ class MainActivity : AppCompatActivity() {
         val resetButton = findViewById<Button>(R.id.reset_time_button)
         val displayPayButton = findViewById<Button>(R.id.display_pay_button)
         val exportDataButton = findViewById<Button>(R.id.export_button)
+        val githubButton = findViewById<Button>(R.id.github_button)
+        val livWageButton = findViewById<Button>(R.id.liv_wage_button)
+        val manageDataButton = findViewById<Button>(R.id.manage_data)
 
         val notifyView = findViewById<TextView>(R.id.notify_view)
         val timeWorked = findViewById<TextView>(R.id.time_worked_view)
@@ -459,6 +462,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Create Listeners
+
+        // Link buttons
+        livWageButton.setOnClickListener{goTo("https://livingwage.mit.edu/")}
+        githubButton.setOnClickListener {goTo("https://github.com/Adri6336/payvis-android")}
+
         // ===========================================================
         // ================Start/Stop Button==========================
         // ===========================================================
@@ -651,6 +659,13 @@ class MainActivity : AppCompatActivity() {
                 notifyView.text = "Unable to export file: $t"
                 println("[X] Failed to export file: $t")
             }
+        }
+
+        // ===========================================================
+        // ================Manage Data================================
+        // ===========================================================
+        manageDataButton.setOnClickListener {
+            notifyView.text = "Feature coming soon!"
         }
     }
 }
