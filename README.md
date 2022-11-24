@@ -3,9 +3,15 @@ An app that allows you to keep track of how much you earned working if you work 
 It shows you how long you worked, how much you have earned, and saves your data to a json file that
 you can export and review later on.
 
+Keeping track of this data could help you understand your finances better, help identify if wage theft
+occurred, and enable you know how much time you spent working. 
+
+Note: due to the variety of laws regarding overtime, Payvis will not account for overtime in its current
+state.
+
 # Features
 
-- Keep track of how much you earned in a day and look into overall earnings data with the data export
+- Keep track of how much you earned in a day and look into overall earnings data with the export data
 button.
 
 - Start the clock and forget about it until you are done working. Payvis is tolerant to closing the app
