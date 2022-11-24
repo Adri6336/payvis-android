@@ -18,9 +18,9 @@ data.
 
 # How to install
 
-- 1. Download the APK file here.
-- 2. Open Google Files and navigate to the directory where you downloaded it.
-- 3. Tap the apk file.
-- 4. Grant permission to download apps from unknown sources when prompted if you haven't already done so
-- 5. When prompted to install, press install
-- 6. Start the app and keep better track of your work income!
+1. Download the APK file here.
+2. Open Google Files and navigate to the directory where you downloaded it.
+3. Tap the apk file.
+4. Grant permission to download apps from unknown sources when prompted if you haven't already done so
+5. When prompted to install, press install
+6. Start the app and keep better track of your work income!
