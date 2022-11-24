@@ -9,6 +9,8 @@ occurred, and enable you know how much time you spent working.
 Note: due to the variety of laws regarding overtime, Payvis will not account for overtime in its current
 state.
 
+![image](https://github.com/Adri6336/payvis-android/raw/main/payvis.jpeg)
+
 # Features
 
 - Keep track of how much you earned in a day and look into overall earnings data with the export data
