@@ -143,7 +143,7 @@ data class Clock(val startTime: Time){
         return (payPerSec * secondsWorked)
     }
 
-    fun createDBEntry(payRate: Double, endTime: Time){
+    fun createDBEntry(payRate: Double, endTime: Time, reset: Boolean = false){
         /*
         This will create a map entry containing time worked and pay earned
 
@@ -152,6 +152,19 @@ data class Clock(val startTime: Time){
         */
         // 1. Get entry key
         val day = startTime.dbEntryTag
+
+        // 1.2. Reset if desired
+        if (reset){  // Resets day
+            val data: Map<String, String> = mapOf(
+                "seconds" to 0.0.toString(),
+                "pay" to 0.0.toString(),
+                "start" to this.startTime.startTime,
+                "finish" to this.startTime.startTime
+            )
+
+            this.dataBase.put(day, data)
+            return
+        }
 
         // 2. Create entry value
         val end = endTime
@@ -545,6 +558,13 @@ class MainActivity : AppCompatActivity() {
                 // 2.3 Reset clock
                 clock = loadClockFile()  // Resets session's clock
                 clockStarted = false
+
+                // 2.3.2 Reset day's db entry
+                println("[i] DAY DB BEFORE PURGE: ${readFile("workDB.json")}")
+                loadDBFile(emptyClock)  // Save db to clock
+                emptyClock.createDBEntry(clock.rate, Time(LocalDateTime.now()), reset=true)  // Reset day
+                saveDBFile(emptyClock)  // Save reset db to device
+                println("[i] DAY DB AFTER PURGE: ${readFile("workDB.json")}")
 
                 // 2.4 Notify user of purge and clean screen
                 println("[i] CF AFTER PURGE: ${readFile("clock.pvcf")}")
