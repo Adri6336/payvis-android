@@ -18,7 +18,7 @@ data.
 
 # How to install
 
-1. Download the APK file here.
+1. Download the APK file [here](https://github.com/Adri6336/payvis-android/releases/download/v0.9/Payvis-v0.9.apk).
 2. Open Google Files and navigate to the directory where you downloaded it.
 3. Tap the apk file.
 4. Grant permission to download apps from unknown sources when prompted if you haven't already done so
