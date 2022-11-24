@@ -15,6 +15,7 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.google.gson.Gson
+import java.math.RoundingMode
 import java.net.URI
 
 
@@ -105,19 +106,28 @@ data class Time(val initialTime: LocalDateTime){
         // 1.1 Format minutes to have at most 2 decimal places
         minutes = String.format("%.02f", minutes).toDouble()
 
+        // 1.2 Make minutes int
+        val minSeparated = minutes.toString().split(".")  // place 0 = minutes, 1 = seconds
+        var minutesI = minSeparated[0].toInt()
+        var seconds = (elapsed % 60).toInt() // Determine how many seconds have passed
+
         // 2. Create two strings with the hour and minute data
         var hourText: String
         var minText: String
+        var secText: String
 
         hourText = this.statement(hours, "hour")
-        minText = this.statement(minutes, "min")
-
+        minText = this.statement(minutesI, "min")
+        secText = this.statement(seconds, "sec")
 
         // 3. Compile final string
-        if (hours == 0 && minutes == 0.0){return ""}
-        else if (hours == 0 && minutes > 0.0){return "$minText worked"}
-        else if (hours > 0 && minutes == 0.0) {return "$hourText worked"}
-        else {return "$hourText and $minText worked"}
+        if (hours == 0 && minutesI == 0 && seconds == 0){return ""}
+        else if (hours == 0 && minutesI > 0 && seconds > 0){return "$minText, $secText worked"}
+        else if (hours == 0 && minutesI > 0 && seconds == 0){return "$minText worked"}
+        else if (hours > 0 && minutesI == 0 && seconds > 0) {return "$hourText, $secText worked"}
+        else if (hours > 0 && minutes > 0 && seconds == 0){return "$hourText, $minText worked"}
+        else if (hours > 0 && minutesI == 0 && seconds == 0){return "$hourText"}
+        else {return "$hourText and $minText and $secText worked"}
     }
 }
 
@@ -414,11 +424,14 @@ class MainActivity : AppCompatActivity() {
             // Mark clock started and import settings
             println("[i] Active clock detected")
             clock = loadClockFile()
+            now = clock.update()
+            val totalSec = clock.sessionSeconds + clock.totalSeconds
 
             rateEntry.setText("${String.format("%.02f", clock.rate)}")  // Loads saved rate to entry
             rate = getRate()
-            timeWorked.text = "${clock.startTime.getElapsedTimeAsString(now)}"
-            payDisp = clock.calculatePay(rate, clock.startTime.getElapsedTimeSec(now))
+
+            payDisp = clock.calculatePay(clock.rate, totalSec)
+            timeWorked.text = "${clock.startTime.getElapsedTimeAsString(now, elapSec = totalSec)}"
             payView.text = "$${String.format("%.02f", payDisp)} earned"
 
             clockStarted = true
