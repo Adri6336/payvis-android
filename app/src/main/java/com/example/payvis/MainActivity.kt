@@ -2,10 +2,11 @@
 // Icon made with money image found here: https://www.pngarts.com/files/3/Falling-Cash-Money-PNG-Photo.png
 package com.example.payvis
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.*
 import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -375,6 +376,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun vibrate(milliSec: Long = 50, effect: Int = VibrationEffect.DEFAULT_AMPLITUDE){
+        // Vibrates for a specified amount of milliseconds.
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
+        if (vibrator.hasVibrator()){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {vibrator.vibrate(VibrationEffect.
+            createOneShot(milliSec, effect))}
+            else {
+                vibrator.vibrate(milliSec)
+            }
+        }
+    }
 
     // ============ APP ============
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -464,14 +477,15 @@ class MainActivity : AppCompatActivity() {
         // Create Listeners
 
         // Link buttons
-        livWageButton.setOnClickListener{goTo("https://livingwage.mit.edu/")}
-        githubButton.setOnClickListener {goTo("https://github.com/Adri6336/payvis-android")}
+        livWageButton.setOnClickListener{vibrate(); goTo("https://livingwage.mit.edu/")}
+        githubButton.setOnClickListener {vibrate(); goTo("https://github.com/Adri6336/payvis-android")}
 
         // ===========================================================
         // ================Start/Stop Button==========================
         // ===========================================================
 
         startButton.setOnClickListener{  // start or stop clock
+            vibrate()
             startButtonPressed = true
 
             // 0. Ensure that necessary info exists
@@ -542,6 +556,7 @@ class MainActivity : AppCompatActivity() {
         val emptyClock = Clock(Time(LocalDateTime.now()))
 
         resetButton.setOnClickListener {
+            vibrate()
             // 0. Determine if clock just started
             // If a new clock or file was created, user may want to purge again
             if (pressCt > 0 && startButtonPressed){
@@ -610,6 +625,7 @@ class MainActivity : AppCompatActivity() {
         // ================Display Pay Button=========================
         // ===========================================================
         displayPayButton.setOnClickListener {
+            vibrate()
             var pay: Double
             now = clock.update()  // Update before accessing data required
             val totalSec = clock.sessionSeconds + clock.totalSeconds
@@ -636,6 +652,7 @@ class MainActivity : AppCompatActivity() {
         // ================Export Button==============================
         // ===========================================================
         exportDataButton.setOnClickListener {
+            vibrate()
             var uri: Uri
             val intent = Intent(Intent.ACTION_SEND)
 
@@ -665,6 +682,7 @@ class MainActivity : AppCompatActivity() {
         // ================Manage Data================================
         // ===========================================================
         manageDataButton.setOnClickListener {
+            vibrate()
             notifyView.text = "Feature coming soon!"
         }
     }
