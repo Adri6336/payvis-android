@@ -1,7 +1,7 @@
 # Payvis
 An app that allows you to keep track of how much you earned working if you work on a hourly basis. 
 It shows you how long you worked, how much you have earned, and saves your data to a json file that
-you can export and review later on.
+you can export and review later on. 
 
 Keeping track of this data could help you understand your finances better, help identify if wage theft
 occurred, and enable you know how much time you spent working. 
