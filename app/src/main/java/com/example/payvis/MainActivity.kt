@@ -492,7 +492,9 @@ class MainActivity : AppCompatActivity() {
         // ===========================================================
         manageDataButton.setOnClickListener {
             vibrate()
-            notifyView.text = "Feature coming soon!"
+            val intent = Intent(this@MainActivity, MainActivity::class.java)
+            startActivity(intent)
+
         }
     }
 }
