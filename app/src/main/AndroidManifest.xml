@@ -39,6 +39,12 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+        <activity
+            android:name=".ManageData"
+            android:screenOrientation="portrait"
+            android:exported="true"
+            android:theme="@style/Theme.Payvis"/>
+
     </application>
 
 </manifest>

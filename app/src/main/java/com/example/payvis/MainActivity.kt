@@ -492,7 +492,7 @@ class MainActivity : AppCompatActivity() {
         // ===========================================================
         manageDataButton.setOnClickListener {
             vibrate()
-            val intent = Intent(this@MainActivity, MainActivity::class.java)
+            val intent = Intent(this@MainActivity, ManageData::class.java)
             startActivity(intent)
 
         }
