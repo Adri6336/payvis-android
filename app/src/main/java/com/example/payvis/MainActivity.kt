@@ -28,15 +28,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun saveFile(content: String, fileName: String){
-        File(applicationContext.filesDir, fileName).printWriter().use{
-            out -> out.println(content)
-        }
+        val file = Open(applicationContext.filesDir, fileName)
+        file.write(content)
     }
 
     fun readFile(fileName: String): String{
-        File(applicationContext.filesDir, fileName).bufferedReader().use{
-            return it.readText()
-        }
+        val file = Open(applicationContext.filesDir, fileName)
+        return file.read()
     }
 
     fun clockFileExists(): Boolean{

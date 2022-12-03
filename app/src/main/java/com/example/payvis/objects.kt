@@ -1,8 +1,33 @@
 package com.example.payvis
 
 import com.google.gson.Gson
+import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+
+class Open(val fileDir: File, val fileName: String){
+    /*
+    This allows you to read and write to a file.
+    :param fileDir: This is the directory where you'll mess with a file. A good option is
+    applicationContext.filesDir.
+    :param fileName: This is the file you want to create
+     */
+
+    fun write(content: String){
+        // Currently overwrites a file if it exists
+        File(fileDir, fileName).printWriter().use{
+                out -> out.println(content)
+        }
+    }
+
+    fun read(): String{
+        File(fileDir, fileName).bufferedReader().use{
+            return it.readText()
+        }
+    }
+}
+
 
 data class Time(val initialTime: LocalDateTime){
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
