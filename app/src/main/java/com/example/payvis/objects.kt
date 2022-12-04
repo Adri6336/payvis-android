@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
-class DataBase(val context: Context){
+data class DataBase(val context: Context){
     /*
     This database object will store a db map file and be able to load and
     overwrite new workDB.json files.
