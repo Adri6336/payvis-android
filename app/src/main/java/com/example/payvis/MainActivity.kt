@@ -184,24 +184,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun vibrate(milliSec: Long = 50, effect: Int = VibrationEffect.DEFAULT_AMPLITUDE){
-        // Vibrates for a specified amount of milliseconds.
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-
-        if (vibrator.hasVibrator()){
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {vibrator.vibrate(VibrationEffect.
-            createOneShot(milliSec, effect))}
-            else {
-                vibrator.vibrate(milliSec)
-            }
-        }
-    }
-
     // ============ APP ============
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        val vibrator = PhoneVibrator(this)
 
         // ===========================================================
         // ================Startup====================================
@@ -286,15 +274,15 @@ class MainActivity : AppCompatActivity() {
         // Create Listeners
 
         // Link buttons
-        livWageButton.setOnClickListener{vibrate(); goTo("https://livingwage.mit.edu/")}
-        githubButton.setOnClickListener {vibrate(); goTo("https://github.com/Adri6336/payvis-android")}
+        livWageButton.setOnClickListener{vibrator.vibrate(); goTo("https://livingwage.mit.edu/")}
+        githubButton.setOnClickListener {vibrator.vibrate(); goTo("https://github.com/Adri6336/payvis-android")}
 
         // ===========================================================
         // ================Start/Stop Button==========================
         // ===========================================================
 
         startButton.setOnClickListener{  // start or stop clock
-            vibrate()
+            vibrator.vibrate()
             startButtonPressed = true
 
             // 0. Ensure that necessary info exists
@@ -330,8 +318,10 @@ class MainActivity : AppCompatActivity() {
 
             if (startClock){  // If we need to start the clock
                 notifyView.text = "Clock Started!"
+                vibrator.startClock()
 
             } else{  // Otherwise if we need to stop the clock
+                vibrator.stopClock()
 
                 // 1. Prep clock for db store
                 now = clock.update()  // Get current time
@@ -365,7 +355,7 @@ class MainActivity : AppCompatActivity() {
         val emptyClock = Clock(Time(LocalDateTime.now()))
 
         resetButton.setOnClickListener {
-            vibrate()
+            vibrator.vibrate()
             // 0. Determine if clock just started
             // If a new clock or file was created, user may want to purge again
             if (pressCt > 0 && startButtonPressed){
@@ -434,7 +424,7 @@ class MainActivity : AppCompatActivity() {
         // ================Display Pay Button=========================
         // ===========================================================
         displayPayButton.setOnClickListener {
-            vibrate()
+            vibrator.vibrate()
             var pay: Double
             now = clock.update()  // Update before accessing data required
             val totalSec = clock.sessionSeconds + clock.totalSeconds
@@ -461,7 +451,7 @@ class MainActivity : AppCompatActivity() {
         // ================Export Button==============================
         // ===========================================================
         exportDataButton.setOnClickListener {
-            vibrate()
+            vibrator.vibrate()
             var uri: Uri
             val intent = Intent(Intent.ACTION_SEND)
 
@@ -491,7 +481,7 @@ class MainActivity : AppCompatActivity() {
         // ================Manage Data================================
         // ===========================================================
         manageDataButton.setOnClickListener {
-            vibrate()
+            vibrator.vibrate()
             val intent = Intent(this@MainActivity, ManageData::class.java)
             startActivity(intent)
 

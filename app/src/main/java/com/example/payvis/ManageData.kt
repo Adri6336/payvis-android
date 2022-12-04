@@ -15,20 +15,7 @@ import java.io.File
 
 class ManageData: AppCompatActivity() {
 
-    fun vibrate(milliSec: Long = 50, effect: Int = VibrationEffect.DEFAULT_AMPLITUDE){
-        // Vibrates for a specified amount of milliseconds.
-        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-
-        if (vibrator.hasVibrator()){
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {vibrator.vibrate(
-                VibrationEffect.
-            createOneShot(milliSec, effect))}
-            else {
-                vibrator.vibrate(milliSec)
-            }
-        }
-    }
-
+    val vibrator = PhoneVibrator(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,13 +31,14 @@ class ManageData: AppCompatActivity() {
         // Create listeners ============
         // Back
         backButton.setOnClickListener {
+            vibrator.vibrate()
             onBackPressed()
         }
 
 
         // Export Data
         exportDataButton.setOnClickListener {
-            vibrate()
+            vibrator.vibrate()
             var uri: Uri
             val intent = Intent(Intent.ACTION_SEND)
 
@@ -80,7 +68,7 @@ class ManageData: AppCompatActivity() {
 
         // Load Data
         loadDataButton.setOnClickListener {
-
+            vibrator.vibrate()
         }
     }
 }

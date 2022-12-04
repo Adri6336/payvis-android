@@ -1,10 +1,52 @@
 package com.example.payvis
 
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+class PhoneVibrator(val phone: AppCompatActivity){
+    fun vibrate(milliSec: Long = 50, effect: Int = VibrationEffect.DEFAULT_AMPLITUDE){
+        /*
+        This is the default vibration mode. To be used for unimportant buttons
+         */
+
+        val vibrator = phone.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
+        if (vibrator.hasVibrator()){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {vibrator.vibrate(
+                VibrationEffect.
+            createOneShot(milliSec, effect))}
+            else {
+                vibrator.vibrate(milliSec)
+            }
+        }
+    }
+
+    fun startClock(){
+        // Special vibration for starting the clock
+        // low, medium, high
+        this.vibrate(50)
+        this.vibrate(80)
+        this.vibrate(100, VibrationEffect.EFFECT_HEAVY_CLICK)
+    }
+
+    fun stopClock(){
+        // Special vibration for stopping the clock
+        // High medium low
+        this.vibrate(100, VibrationEffect.EFFECT_HEAVY_CLICK)
+        this.vibrate(80)
+        this.vibrate(50)
+    }
+
+
+
+}
 
 class Open(val fileDir: File, val fileName: String){
     /*
