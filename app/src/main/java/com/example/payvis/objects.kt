@@ -10,6 +10,54 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+
+class DataBase(val phone: AppCompatActivity){
+    /*
+    This database object will store a db map file and be able to load and
+    overwrite new workDB.json files.
+     */
+
+    var dataBase: MutableMap<String, Map<String, String>> = mutableMapOf()
+    // database = {day : total sec, pay, start, and end times}
+
+
+    fun loadDB(file: File){
+        /* This will grab a file, convert it to a map object,
+        and replace the dataBase variable with it
+        */
+    }
+
+    fun overwriteDB(){
+        /* This will convert the dataBase variable to json and save it to
+        the workDB.json file
+        */
+    }
+
+    fun get(): MutableMap<String, Map<String, String>>{
+        // This just grabs the dataBase variable for external use
+
+        return this.dataBase
+    }
+
+    fun set(db: MutableMap<String, Map<String, String>>){
+        // Sets DataBase object dataBase equal to external variable
+        this.dataBase = db
+    }
+
+    fun makeJsonString(): String{
+        // Creates a json string of the database mutable map
+        val gson = Gson()
+        val dbString: String = gson.toJson(this.dataBase, this.dataBase.javaClass)
+        return dbString
+    }
+
+    fun loadJsonString(data: String){
+        val gson = Gson()
+        val db = gson.fromJson(data, this.dataBase.javaClass)
+        this.dataBase = db
+    }
+}
+
 class PhoneVibrator(val phone: AppCompatActivity){
     /*
     This is a class that is used to vibrate the cellphone's default vibrator.
