@@ -11,10 +11,12 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
-class DataBase(val phone: AppCompatActivity){
+class DataBase(val context: Context){
     /*
     This database object will store a db map file and be able to load and
     overwrite new workDB.json files.
+
+    For the context, use applicationContext
      */
 
     var dataBase: MutableMap<String, Map<String, String>> = mutableMapOf()
@@ -25,12 +27,17 @@ class DataBase(val phone: AppCompatActivity){
         /* This will grab a file, convert it to a map object,
         and replace the dataBase variable with it
         */
+
+        val dbJson = Open(context.filesDir, "workDB.json").read()
+        val db = this.loadJsonString(dbJson)
     }
 
     fun overwriteDB(){
         /* This will convert the dataBase variable to json and save it to
         the workDB.json file
         */
+        val dbJson = this.makeJsonString()
+        Open(context.filesDir, "workDB.json").write(dbJson)
     }
 
     fun get(): MutableMap<String, Map<String, String>>{
