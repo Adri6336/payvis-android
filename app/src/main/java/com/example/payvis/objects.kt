@@ -11,6 +11,12 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class PhoneVibrator(val phone: AppCompatActivity){
+    /*
+    This is a class that is used to vibrate the cellphone's default vibrator.
+    To use, assign this class to a val within an AppCompatActivity and pass
+    "this" to the phone argument.
+     */
+
     fun vibrate(milliSec: Long = 50, effect: Int = VibrationEffect.DEFAULT_AMPLITUDE){
         /*
         This is the default vibration mode. To be used for unimportant buttons
@@ -43,9 +49,6 @@ class PhoneVibrator(val phone: AppCompatActivity){
         this.vibrate(80)
         this.vibrate(50)
     }
-
-
-
 }
 
 class Open(val fileDir: File, val fileName: String){
