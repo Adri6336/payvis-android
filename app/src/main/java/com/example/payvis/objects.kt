@@ -2,6 +2,7 @@ package com.example.payvis
 
 import android.content.Context
 import android.os.Build
+import android.os.SystemClock.sleep
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.Gravity
@@ -102,7 +103,7 @@ class PhoneVibrator(val phone: AppCompatActivity){
     fun startClock(){
         // Special vibration for starting the clock
         // low, medium, high
-        this.vibrate(100, VibrationEffect.EFFECT_CLICK)
+        this.vibrate(100, 20)
         this.vibrate(150)
         this.vibrate(200, VibrationEffect.EFFECT_HEAVY_CLICK)
     }
@@ -112,13 +113,18 @@ class PhoneVibrator(val phone: AppCompatActivity){
         // High medium low
         this.vibrate(200, VibrationEffect.EFFECT_HEAVY_CLICK)
         this.vibrate(150)
-        this.vibrate(100, VibrationEffect.EFFECT_CLICK)
+        this.vibrate(100, 20)
     }
 
     fun error(){
         // Special vibration for error messages
-        this.vibrate(200, VibrationEffect.EFFECT_DOUBLE_CLICK)
-        this.vibrate(200, VibrationEffect.EFFECT_HEAVY_CLICK)
+        this.vibrate(200, 250)
+        this.vibrate(300, 1)
+        this.vibrate(200, 250)
+        sleep(500)
+        this.vibrate(200, 250)
+        this.vibrate(300, 1)
+        this.vibrate(200, 250)
     }
 }
 

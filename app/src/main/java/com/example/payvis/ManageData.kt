@@ -71,14 +71,14 @@ class ManageData: AppCompatActivity() {
 
         // Load Data
         loadDataButton.setOnClickListener {
-            vibrator.vibrate()
-            Notify(applicationContext, "Feature not developed yet")
+            vibrator.error()
+            Notify(applicationContext, "Feature not developed yet", length = Toast.LENGTH_SHORT)
         }
 
 
         resetButton.setOnClickListener{
-            vibrator.vibrate()
-            Notify(applicationContext, "Feature not developed yet")
+            vibrator.error()
+            Notify(applicationContext, "Feature not developed yet", length = Toast.LENGTH_SHORT)
 
         }
     }
