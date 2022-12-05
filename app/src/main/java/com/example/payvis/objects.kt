@@ -20,7 +20,6 @@ class Notify(val context: Context, val content: String, val length: Int = Toast.
         toast.setGravity(gravity, xOffset, yOffset)
         toast.show()
     }
-
 }
 
 data class DataBase(val context: Context){
@@ -33,7 +32,6 @@ data class DataBase(val context: Context){
 
     var dataBase: MutableMap<String, Map<String, String>> = mutableMapOf()
     // database = {day : total sec, pay, start, and end times}
-
 
     fun loadDB(file: File){
         /* This will grab a file, convert it to a map object,
@@ -104,17 +102,23 @@ class PhoneVibrator(val phone: AppCompatActivity){
     fun startClock(){
         // Special vibration for starting the clock
         // low, medium, high
-        this.vibrate(50)
-        this.vibrate(80)
-        this.vibrate(100, VibrationEffect.EFFECT_HEAVY_CLICK)
+        this.vibrate(100, VibrationEffect.EFFECT_CLICK)
+        this.vibrate(150)
+        this.vibrate(200, VibrationEffect.EFFECT_HEAVY_CLICK)
     }
 
     fun stopClock(){
         // Special vibration for stopping the clock
         // High medium low
-        this.vibrate(100, VibrationEffect.EFFECT_HEAVY_CLICK)
-        this.vibrate(80)
-        this.vibrate(50)
+        this.vibrate(200, VibrationEffect.EFFECT_HEAVY_CLICK)
+        this.vibrate(150)
+        this.vibrate(100, VibrationEffect.EFFECT_CLICK)
+    }
+
+    fun error(){
+        // Special vibration for error messages
+        this.vibrate(200, VibrationEffect.EFFECT_DOUBLE_CLICK)
+        this.vibrate(200, VibrationEffect.EFFECT_HEAVY_CLICK)
     }
 }
 
