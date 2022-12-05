@@ -7,8 +7,10 @@ import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.view.Gravity
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import java.io.File
@@ -25,8 +27,10 @@ class ManageData: AppCompatActivity() {
         val backButton = findViewById<Button>(R.id.back_button)
         val exportDataButton = findViewById<Button>(R.id.export_data_button)
         val loadDataButton = findViewById<Button>(R.id.load_data_button)
+        val resetButton = findViewById<Button>(R.id.reset_button)
 
         val notifyView = findViewById<TextView>(R.id.notify_view2)
+        notifyView.text = ""  // Clear text view immediately on start
 
         // Create listeners ============
         // Back
@@ -65,10 +69,17 @@ class ManageData: AppCompatActivity() {
 
         }
 
-
         // Load Data
         loadDataButton.setOnClickListener {
             vibrator.vibrate()
+            Notify(applicationContext, "Feature not developed yet")
+        }
+
+
+        resetButton.setOnClickListener{
+            vibrator.vibrate()
+            Notify(applicationContext, "Feature not developed yet")
+
         }
     }
 }

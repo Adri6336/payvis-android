@@ -4,12 +4,24 @@ import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.view.Gravity
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+class Notify(val context: Context, val content: String, val length: Int = Toast.LENGTH_LONG,
+            val xOffset:Int = 200, val yOffset:Int = 200, val gravity: Int = Gravity.CENTER){
+    val toast = Toast.makeText(context, content, length)
+
+    init {
+        toast.setGravity(gravity, xOffset, yOffset)
+        toast.show()
+    }
+
+}
 
 data class DataBase(val context: Context){
     /*
@@ -128,7 +140,6 @@ class Open(val fileDir: File, val fileName: String){
     }
 }
 
-
 data class Time(val initialTime: LocalDateTime){
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     val startTime = initialTime.format(formatter)
@@ -240,7 +251,6 @@ data class Time(val initialTime: LocalDateTime){
         else {return "$hourText, $minText, and $secText worked"}
     }
 }
-
 
 data class Clock(val startTime: Time){
     var totalSeconds: Double = 0.0
