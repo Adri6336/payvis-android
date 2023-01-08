@@ -429,7 +429,7 @@ class MainActivity : AppCompatActivity() {
         var clock: Clock = Clock(Time(LocalDateTime.now()))  // Set equal to a place holder
         var date = Time(LocalDateTime.now()).startTime.split(" ")[0]
         // The above gets the current time and grabs the date section (time and date separated by space)
-        var fileDate: String  // This is the date found in the file
+        var fileDate: String = "" // This is the date found in the file
         var now = LocalDateTime.now()
         var rate: Double
         var payDisp: Double
@@ -643,7 +643,17 @@ class MainActivity : AppCompatActivity() {
                     payView.text = "$${String.format("%.02f", pay)} earned"
                 }
                 false -> {
-                    notifyView.text = "Start clock first to display pay"
+                    if (fileDate == date){  // If last on was today
+                        pay = clock.calculatePay(clock.rate, clock.totalSeconds)
+                        val elapsedTime = clock.startTime.getElapsedTimeAsString(now,
+                            elapSec = clock.totalSeconds)
+
+                        timeWorked.text = elapsedTime
+                        payView.text = "$${String.format("%.02f", pay)} earned"
+                    } else {
+                        notifyView.text = "Start clock first to display pay"
+                    }
+
                 }
             }
         }
